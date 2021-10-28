@@ -10,7 +10,7 @@ body{
 	justify-content: space-evenly;	/* 项目间距与左右两边到容器间距相等 */
 
 	/* 以上为横向布局 */
-	
+	align-content: flex-start;	/* 使行间距是我们设置的margin,而不是超大，这将使得各行紧密排列*/
 	/* 垂直布局 */
 	align-items: center;	/* 竖直居中 交叉轴居中排列 */
 	align-items: flex-end;  /* 靠着交叉轴底部对齐 */
@@ -30,6 +30,9 @@ body{
 	height:100px;
 	background: blue;
 	border:1px solid #1f1e12;
+	margin-bottom: 20px;
+/* 	margin:0;
+	padding:0; */
 	
 	/* 项目属性 */
 	order:0;		/* order属性值越小,项目排列越靠前 */
