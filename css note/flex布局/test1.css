@@ -1,0 +1,52 @@
+body{
+	width:100%;
+	height:100vh;
+	display:flex;
+	justify-content: flex-start;	/* 靠左对齐(默认) */
+	justify-content: center; /* 水平居中 */
+	justify-content:flex-end ;	/* 靠右对齐*/
+	justify-content:space-between;	/* 左右两端对齐,且item之间间距相等 */
+	justify-content:space-around;	/* 项目间距为左右两边项目到容器间距的二倍 */
+	justify-content: space-evenly;	/* 项目间距与左右两边到容器间距相等 */
+
+	/* 以上为横向布局 */
+	
+	/* 垂直布局 */
+	align-items: center;	/* 竖直居中 交叉轴居中排列 */
+	align-items: flex-end;  /* 靠着交叉轴底部对齐 */
+	/* 容器属性 */
+	flex-direction: row;	/* 按行排列 */
+	flex-direction: row-reverse; /* 排列顺序反转 */
+/* 	flex-direction: column;		/* 按列分布(竖着排序) */ */
+	
+	/* 换行 */
+	flex-wrap: nowrap;	/* 超过容器宽度,项目会等分容器宽度且不换行 */
+	flex-wrap: wrap;
+	
+	
+}
+.box{
+	width:100px;
+	height:100px;
+	background: blue;
+	border:1px solid #1f1e12;
+	
+	/* 项目属性 */
+	order:0;		/* order属性值越小,项目排列越靠前 */
+	order:1;		
+	order:2;
+	/* align-self: center/flex-end;	 */	/* 使某个项目单独排列出来让他居中/靠底端对齐 */
+	
+	/* flex-grow用来决定项目在有剩余空间的情况下是否放大,默认为0不放大，即便项目设置了固定宽度也会放大 */
+		/* 假如三个项目中前俩项目都是0,最后一个是1,最后的项目会占满所有剩余空间 */
+		/* 	假如只有一个项目默认为0,后面两个flex-grow为1,那么后俩平分剩余空间 */
+		
+		/* flex-shrink默认1,用于决定项目在空间不足时是否缩小,默认为1,即空间不足大家一起等比缩小 */
+		/* 注:即使项目固定宽度也会缩小,但如果某个项目flex-shrink为0,即便空间不够,自身也不缩小 */
+		
+	/* 	flex-basis用于设置项目宽度,默认auto时,项目会保持默认宽度,或者以width为自身的宽度 */
+	/* 	如果设置了flex-basis,权重比width属性高,会覆盖width属性 */
+	/* 前三个属性可以简写到flex,用来定义项目放大缩小与宽度. */
+	/* 该属性有两个快捷键,分别是auto(1 1 auto)等分放大缩小 */
+	/* 以及none(0 0 auto)不放大但是等分缩小 */
+}	
