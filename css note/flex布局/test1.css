@@ -9,9 +9,9 @@ body{
 	justify-content:space-around;	/* 项目间距为左右两边项目到容器间距的二倍 */
 	justify-content: space-evenly;	/* 项目间距与左右两边到容器间距相等 */
 
-	/* 以上为横向布局 */
-	align-content: flex-start;	/* 使行间距是我们设置的margin,而不是超大，这将使得各行紧密排列*/
+	/* 以上为横向布局 */	
 	/* 垂直布局 */
+	align-content: flex-start;	/* 使行间距是我们设置的margin,而不是超大，这将使得各行紧密排列*/
 	align-items: center;	/* 竖直居中 交叉轴居中排列 */
 	align-items: flex-end;  /* 靠着交叉轴底部对齐 */
 	/* 容器属性 */
