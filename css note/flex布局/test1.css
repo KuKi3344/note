@@ -11,7 +11,9 @@ body{
 
 	/* 以上为横向布局 */	
 	/* 垂直布局 */
-	align-content: flex-start;	/* 使行间距是我们设置的margin,而不是超大，这将使得各行紧密排列*/
+	align-content: flex-start;	/* 使行间距是我们设置的margin,而不是超大，这将使得各行紧密排列*/ /* 换行时需要使用align-content 代替align-items,因为align-items在行数大于一时不管用 align-content在单行时不管用*/
+	align-content: space-between; /* 每行item之间间距相等,一行贴上沿一行贴下沿 */
+	align-content: space-around;/* 上下行距离边沿都有一段距离且相等 */
 	align-items: center;	/* 竖直居中 交叉轴居中排列 */
 	align-items: flex-end;  /* 靠着交叉轴底部对齐 */
 	/* 容器属性 */
