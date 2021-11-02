@@ -1,36 +1,48 @@
 /* 常用初始化样式 */
-body{
+body {
 	max-width: 540px;
-	min-width:320px;
 	margin: 0 auto;
-	font:normal 14px/1.5 Tahoma,"lucida grande",Verdana,"microsoft yahei",stxihei,hei;
-	color:#000;
+	font: normal 14px/1.5 Tahoma, "lucida grande", Verdana, "microsoft yahei", stxihei, hei;
+	color: #000;
 	background: #f2f2f2;
-	overflow-x:hidden;
+	overflow-x: hidden;
 	-webkit-tap-highlight-color: transparent;
 }
-.search-index{
+
+.search-index {
 	display: flex;
-/* 	固定定位和父级没有关系,它以屏幕为准; */
-	position:fixed;
-	top:0;
-	left:50%;
-/* 	固定的盒子应该有高度 */
-	transform: translateX(-50%);	/* 相对于盒子自身宽度来说的 */
+	/* 	固定定位和父级没有关系,它以屏幕为准; */
+	position: fixed;
+	top: 0;
+	left: 50%;
+	/* 	固定的盒子应该有高度 */
+	transform: translateX(-50%);
+	/* 相对于盒子自身宽度来说的 */
 	-webkit-transform: translateX(-50%);
-	width:100%;
-	min-width:320px;
-	max-width:540px;
-	height:44px;
-	background-color: #46418B;
-	flex-direction: row-reverse; 
+	width: 100%;
+	max-width: 540px;
+	height: 44px;
+	justify-content: flex-start;
+	align-items: center;
+	padding: 12px;
 }
-.search{
-	flex = 1;
+
+.search {
+	flex:1;
+	display: flex;
+	height: 30px;
+	width: 100%;
+	max-width: 540px;
+	border: 2px solid #0086f6;
+	border-radius: 15px;
+	margin:5px;
 }
-.user{
-	width:44px;
-	height:44px;
-	background-color: #F9FFD7;
-	
+
+.search-index-box {
+	flex: 1;
+}
+.search-index-box span{
+	font-size:12px;
+	line-height:30px;
+	margin-left:10px;
 }
