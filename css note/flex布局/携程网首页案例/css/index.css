@@ -8,7 +8,15 @@ body {
 	overflow-x: hidden;
 	-webkit-tap-highlight-color: transparent;
 }
-
+a{
+	color:#222;
+	text-decoration: none;
+}
+ul{
+	list-style: none;
+	margin:0;
+	padding:0;
+}
 .search-index {
 	display: flex;
 	/* 	固定定位和父级没有关系,它以屏幕为准; */
@@ -22,9 +30,9 @@ body {
 	width: 100%;
 	max-width: 540px;
 	height: 44px;
-	justify-content: flex-start;
-	align-items: center;
-	padding: 12px;
+	background-color: #f6f6f6;
+	border-top:1px solid #ccc;
+	border-bottom:1px solid #ccc;
 }
 
 .search {
@@ -45,4 +53,67 @@ body {
 	font-size:12px;
 	line-height:30px;
 	margin-left:10px;
+}
+.focus img {
+	width:100%;
+	height:180px;
+	padding-top:44px;
+	
+}
+.local-nav{
+	display:flex;
+	height:64px;
+	background-color: #fff;
+	border-radius:8px;
+	margin:3px 4px;
+}
+.local-nav li{
+	flex:1;
+}
+.local-nav-icon{
+	width:30px;
+	height:30px;
+	background-color: pink;
+	margin-top: 8px;
+	background:url(../img/nav.png) no-repeat 0 0;
+	background-size: 30px auto;
+}
+.local-nav-icon2{
+	width:28px;
+	height:28px;
+	background-color: pink;
+	margin-top: 8px;
+	background:url(../img/nav.png) no-repeat 0 -30px;
+	background-size: 30px auto;
+}
+.local-nav-icon3{
+	width:28px;
+	height:28px;
+	background-color: pink;
+	margin-top: 8px;
+	background:url(../img/nav.png) no-repeat 0 -60px;
+	background-size: 30px auto;
+}
+.local-nav-icon4{
+	width:28px;
+	height:28px;
+	background-color: pink;
+	margin-top: 8px;
+	background:url(../img/nav.png) no-repeat 0 -90px;
+	background-size: 30px auto;
+}
+.local-nav-icon5{
+	width:28px;
+	height:28px;
+	background-color: pink;
+	margin-top: 8px;
+	background:url(../img/nav.png) no-repeat 0 -120px;
+	background-size: 30px auto;
+}
+.local-nav a{
+	display:flex;
+/* 	主轴设为y轴 */
+	flex-direction: column;
+	align-items: center;
+	font-size: 12px;
 }
