@@ -3,10 +3,8 @@ class Tab{
 	constructor(id) {
 	    //获取元素
 		that = this;
-		this.main = document.querySelector(id);
-	
-		this.add = this.main.querySelector('.tabadd');
-		this.remove = this.main.querySelectorAll('.icon-guanbi');
+		this.main = document.querySelector(id);	
+		this.add = this.main.querySelector('.tabadd');		//因为add按钮不会动态添加,所以不用放在updateNode里
 		//获取li的父元素
 		this.ul = this.main.querySelector('.firstnav ul:first-child');
 		//section的父元素
@@ -21,13 +19,14 @@ class Tab{
 			this.lis[i].index = i;
 			this.lis[i].onclick = this.toggleTab; //函数加小括号和不加的区别:不加点击才调用,加了后页面加载就调用
 				// 调用toggleTab的是li,所以toggleTab里的this指向的是li
-			this.remove[i].onclicd = this.removeTab();
+			this.remove[i].onclick = this.removeTab;
 		}
 	}
-	//获取所有的li和section 因为这两个随时可能更新
+	//获取所有的li和section 因为这两个随时可能更新,因为我们动态添加元素需要重新获取对应的元素
 	updateNode(){
 		this.lis = this.main.querySelectorAll('li');
 		this.sections = this.main.querySelectorAll('section');
+		this.remove = this.main.querySelectorAll('.icon-guanbi');
 	}
 	// 1.切换功能
 	toggleTab(){
@@ -57,7 +56,22 @@ class Tab{
 		that.init();	// 识别新加的li和section并让相关元素绑定事件
 	}
 	//删除功能
-	removeTab(){}
+	removeTab(e){
+		e.stopPropagation();	//阻止冒泡 ,防止触发li的切换点击事件
+		var index = this.parentNode.index;
+		console.log(index);
+		that.lis[index].remove();
+		that.sections[index].remove();
+		that.init();	//因为数量发生变化所以需要重新获取元素
+		// 当我们删除的不是选中状态的li时,让之前选中的li保持选中不变
+		if (document.querySelector('.liactive')) return;
+		// 当我们删除选中状态的这个li时,让它的前一个li处于选定状态
+		index--;
+		//手动调用点击事件,不需要鼠标触发
+		//若删除了剩的最后一个,由于that.lis[index]为false,所以不处罚点击事件
+		that.lis[index] && that.lis[index].click();
+		
+	}
 	//修改功能
 	editTab(){}
 }
