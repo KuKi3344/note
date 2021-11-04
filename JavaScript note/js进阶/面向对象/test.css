@@ -7,7 +7,7 @@
 	margin: 0;
 	padding: 0;
 	height:40px;
-	width:300px;
+	width:550px;
 }
 ul{
 	list-style: none;
@@ -26,15 +26,18 @@ li{
 	border-bottom:none;
 }
 .tabadd{
-	width:300px;
+	width:50px;
 	height:40px;
 	position:absolute;
-	left:308px;
-	border:1px solid pink;	
+	left:520px;
 	text-align: center;
 }
 .tabadd span{
+	display:inline-block;	
 	line-height: 30px;
+	border: 1px solid #FFC0CB;
+	width:30px;
+	margin-top: 4px;
 }
 .tabscon{
 	width:200px;
