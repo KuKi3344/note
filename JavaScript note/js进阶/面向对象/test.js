@@ -20,6 +20,7 @@ class Tab{
 			this.lis[i].onclick = this.toggleTab; //函数加小括号和不加的区别:不加点击才调用,加了后页面加载就调用
 				// 调用toggleTab的是li,所以toggleTab里的this指向的是li
 			this.remove[i].onclick = this.removeTab;
+			this.spans[i].ondblclick = this.editTab;
 		}
 	}
 	//获取所有的li和section 因为这两个随时可能更新,因为我们动态添加元素需要重新获取对应的元素
@@ -27,6 +28,7 @@ class Tab{
 		this.lis = this.main.querySelectorAll('li');
 		this.sections = this.main.querySelectorAll('section');
 		this.remove = this.main.querySelectorAll('.icon-guanbi');
+		this.spans = this.main.querySelectorAll('.firstnav li span:first-child');
 	}
 	// 1.切换功能
 	toggleTab(){
@@ -73,6 +75,29 @@ class Tab{
 		
 	}
 	//修改功能
-	editTab(){}
+	editTab(){
+		//将原来的文字赋值给str
+		var str = this.innerHTML;
+		//双击禁止选定文字
+		window.getSelection?window.getSelection().removeAllRanges():document.selection.empty();
+		//生成一个文本框
+		this.innerHTML = '<input type="text"/>';
+		var input = this.children[0];
+		input.value = str;	//将之前里面的文字拿到文本框里
+		input.select();     //让文本框里的文字处于选中状态
+		input.onblur = function(){
+			this.parentNode.innerHTML = this.value;
+			// input里面的内容将input取代了所以input消失了，比如生成文本框后<span><input>xxx</span>
+			//this在上面指向的是span，span的第一个孩子是input，input的父节点是span
+			//所以span里的东西变成了input里的值（input调用的函数所以onblur绑定的函数里的this指向的是input）
+		};
+		//按下回车也可以把文本框里面的值给span
+		input.onkeyup = function(e){
+			if (e.keyCode === 13){
+				//手动调用表单失去焦点事件，不需要鼠标离开操作
+				this.blur();	//这里this指向的是input,因此也能调用onblur方法
+			}
+		}
+	}
 }
 var tab = new Tab('#tab');

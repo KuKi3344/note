@@ -1,13 +1,13 @@
 .tabsbox{
 	height:350px;
-	width:600px;
+	width:660px;
 	border:1px solid pink;
 }
 .firstnav{
 	margin: 0;
 	padding: 0;
 	height:40px;
-	width:550px;
+	width:610px;
 }
 ul{
 	list-style: none;
@@ -20,7 +20,7 @@ li{
 	border:1px solid pink;
 	text-align: center;
 	line-height: 40px;
-	width:98px;
+	width:118px;
 }
 .liactive{
 	border-bottom:none;
@@ -29,7 +29,7 @@ li{
 	width:50px;
 	height:40px;
 	position:absolute;
-	left:520px;
+	left:580px;
 	text-align: center;
 }
 .tabadd span{
@@ -50,6 +50,11 @@ section{
 .conactive{
 	display: inline-block;
 }
-.iconfont icon-guanbi{
-	
+.tabsbox input{	//清除input默认样式
+	width:80px;
+	outline:none;
+	border:0;
+}
+input:focus{
+	border:1px solid #3ea5ff;
 }
