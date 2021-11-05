@@ -21,6 +21,7 @@ class Tab{
 				// 调用toggleTab的是li,所以toggleTab里的this指向的是li
 			this.remove[i].onclick = this.removeTab;
 			this.spans[i].ondblclick = this.editTab;
+			this.sections[i].ondblclick = this.editTab;
 		}
 	}
 	//获取所有的li和section 因为这两个随时可能更新,因为我们动态添加元素需要重新获取对应的元素

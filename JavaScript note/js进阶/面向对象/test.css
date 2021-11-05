@@ -1,5 +1,5 @@
 .tabsbox{
-	height:350px;
+	height:500px;
 	width:660px;
 	border:1px solid pink;
 }
@@ -45,7 +45,9 @@ li{
 }
 section{
 	display:none;
-	padding:10px;
+	padding:10px 10px;
+	width:400px;
+	height:400px;
 }
 .conactive{
 	display: inline-block;
@@ -57,4 +59,9 @@ section{
 }
 input:focus{
 	border:1px solid #3ea5ff;
+}
+.tabscon input{
+	width:400px;
+	height:400px;
+	border:1px solid #3073dd;
 }
