@@ -90,14 +90,19 @@
 		// 如果查询数组中唯一的元素，用some方法更合适，因为它找到这个元素，就不再进行循环，效率更高
 			search_pro.addEventListener('click',function(){
 				var arr = [];
-				data.some(function(value){
-					if (value.name === product.value){
-						arr.push(value); 	//把value放到arr数组里
-						return true; 	// return 后面必须写true,some返回的是bool类型
-					}
-				});
-				//把拿到的数据渲染到页面中
-				setData(arr);
+				if (product.value == ""){
+					setData(data);
+				}else{
+					data.some(function(value){
+						if (value.name === product.value){
+							arr.push(value); 	//把value放到arr数组里
+							return true; 	// return 后面必须写true,some返回的是bool类型
+						}
+					});
+					//把拿到的数据渲染到页面中
+					setData(arr);
+				}
+				
 			});
 		
 		
