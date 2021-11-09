@@ -55,19 +55,34 @@
 		var search_price = document.querySelector('.search-price');
 		var start = document.querySelector('.start');
 		var end = document.querySelector('.end');
+		setData(data);
 		// 渲染数据到页面
-		data.forEach(function(value){
+		function setData(mydata){
+			//先清空tbody里面的数据
+			tbody.innerHTML ='';
+			mydata.forEach(function(value){
 			var tr = document.createElement('tr');
 			tr.innerHTML = '<td>'+value.id+'</td><td>'+value.name+'</td><td>'+value.price+'</td>';
 			tbody.appendChild(tr);
-		})
+		});
+		}
+
 		//根据价格查询商品
 		// 当我们点击了按钮，就可以根据我们的商品价格区间筛选
 		search_price.addEventListener('click',function(){
 			var newData = data.filter(function(value){
+				if (end.value == "" && start.value != ""){
+					return value.price >=start.value;
+				}
+				if (start.value == "" && end.value != ""){
+					return value.price <= end.value;
+				}
+				if (end.value == "" && start.value == ""){
+					return value;
+				}
 				return value.price >=start.value && value.price <= end.value;
 			})
-			console.log(newData);
+			setData(newData);
 		})
 		</script>
 
