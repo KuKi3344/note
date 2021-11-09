@@ -13,8 +13,12 @@ table {
 	margin-left:300px;
 	width:500px;
 }
+.title{
+	width:800px;
+}
 span{
 	margin:20px 20px;
+	width:300px;
 }
 button{
 	margin-left:10px;

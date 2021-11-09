@@ -55,6 +55,8 @@
 		var search_price = document.querySelector('.search-price');
 		var start = document.querySelector('.start');
 		var end = document.querySelector('.end');
+		var product = document.querySelector('.product');
+		var search_pro = document.querySelector('.search-pro');
 		setData(data);
 		// 渲染数据到页面
 		function setData(mydata){
@@ -81,9 +83,24 @@
 					return value;
 				}
 				return value.price >=start.value && value.price <= end.value;
-			})
+			});
 			setData(newData);
-		})
+		});
+		//根据商品名称查找商品
+		// 如果查询数组中唯一的元素，用some方法更合适，因为它找到这个元素，就不再进行循环，效率更高
+			search_pro.addEventListener('click',function(){
+				var arr = [];
+				data.some(function(value){
+					if (value.name === product.value){
+						arr.push(value); 	//把value放到arr数组里
+						return true; 	// return 后面必须写true,some返回的是bool类型
+					}
+				});
+				//把拿到的数据渲染到页面中
+				setData(arr);
+			});
+		
+		
 		</script>
 
 	</body>
