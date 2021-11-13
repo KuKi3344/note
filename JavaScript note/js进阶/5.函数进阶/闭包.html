@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+		<ul class="nav">
+			<li>榴莲</li>
+			<li>臭豆腐</li>
+			<li>鲱鱼罐头</li>
+			<li>猪蹄</li>
+		</ul>
+		<script>
+			//闭包应用 - 点击li输出当前li的索引号
+			//1.我们可以利用动态添加属性的方式
+			// var lis = document.querySelector('.nav').querySelectorAll('li');
+			// for (var i=0;i<lis.length;i++){
+			// 	lis[i].index = i;
+			// 	lis[i].onclick = function(){
+			// 		console.log(this.index);
+			// 	}
+			// }
+			//2.利用闭包的方式得到当前li的索引号（据说是面试重点！）
+			// for(var i = 0;i<lis.length;i++){
+			// 	//利用for循环创建了四个立即执行函数
+			// 	//立即执行函数里面的任何一个函数都可以使用它的i变量
+			// 	(function(i){	//这个i是通过下面的i传过来的，每循环一次传递的i不一样
+			// 			lis[i].onclick = function(){
+			// 				console.log(i);
+			// 			}
+			// 	})(i);	
+			// }
+			//闭包应用2：3秒后打印所有li元素内容
+			// var lis = document.querySelector('.nav').querySelectorAll('li');
+			// for (var i = 0; i < lis.length; i++) {
+			// 	//for循环是同步任务
+			// 	// 像点击，悬浮触发函数都是异步的，所以需要立即执行函数，否则会出现问题
+			// 	(function(i) {
+			// 		setTimeout(function() {
+			// 			console.log(lis[i].innerHTML);
+			// 		}, 3000)
+			// 	})(i);
+			// }
+			//闭包应用三：计算打车价格
+			//打车起步价13（3公里内），之后每多一公里增加五元，用户输入公里数就可以计算打车价格
+			//如果有拥堵情况，总价格多收取十块钱拥堵费
+			var car = (function(){
+				var start = 13;	// 起步价
+				var total = 0;	//总价
+				return {
+					//正常总价
+					price:function(n){
+						if (n<=3){
+							total = start;
+						}else{
+							total = start + (n - 3) * 5;
+						}
+						return total;
+					},
+					//拥堵之后的费用		
+					yd:function(flag){
+						return flag ? total + 10 : total;
+						// 如果flag为true则total加10否则total不变
+					}			
+				}
+			})();
+			console.log(car.price(5));	//因为闭包把值存储在里面了 并没有销毁，所以这里23不会被销毁，所以下面会输出33
+			console.log(car.yd(true));
+		</script>
+	</body>
+</html>
