@@ -59,7 +59,7 @@ class Tab{
 		that.init();	// 识别新加的li和section并让相关元素绑定事件
 	}
 	//删除功能
-	removeTab(e){
+	removeTab(e){	//e是事件对象 e是event的意思，每一个元素都有的，只是一般没显示出来
 		e.stopPropagation();	//阻止冒泡 ,防止触发li的切换点击事件
 		var index = this.parentNode.index;
 		console.log(index);
