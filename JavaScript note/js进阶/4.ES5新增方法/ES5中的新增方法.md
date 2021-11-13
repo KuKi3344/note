@@ -1,10 +1,10 @@
-### ES5中的新增方法
+## ES5中的新增方法
 
-#### 数组方法
+### 数组方法
 
 迭代遍历方法：forEach(),map(),some(),every();
 
-##### **forEach()**
+#### **forEach()**
 
 ```
 array.forEach(function(currentValue,index,arr))
@@ -26,7 +26,7 @@ array.forEach(function(currentValue,index,arr))
   console.log(sum);
   ```
 
-##### filter()
+#### filter()
 
 filter()方法创建一个新的数组，新数组中的元素是通过检查指定数组中符合条件的所有元素，主要用于筛选数组
 
@@ -50,9 +50,37 @@ return value >= 20;
 console.log(newArr);
 ```
 
-##### some()
+#### some()
 
-![1](D:\web前端\JavaScript note\js进阶\img\11.8\1.png)![2](D:\web前端\JavaScript note\js进阶\img\11.8\2.png)![3](D:\web前端\JavaScript note\js进阶\img\11.8\3.png)
+```
+array.some(function(currentValue,index,arr))
+```
+
+- some()方法用于检测数组种的元素是否满足指定条件。通俗来说就是查找数组中是否有满足条件的元素
+
+- <font color=red>注</font>:它的返回值是布尔值，如果查找到这个元素，就返回true，查找不到就返回false
+
+- 如果找到第一个满足条件的元素，则终止循环，不再继续查找
+
+- currentValue：数组当前项的值
+
+- index：数组当前项的索引
+
+- arr：数组对象本身
+
+  ```
+  var arr = [10,30,4];
+  var flag = arr.some(function(value){
+  	return value < 3;
+  })
+  console.log(flag);
+  
+  var arr1 = ['red','pink','blue'];
+  var flag1 = arr1.some(function(value){
+  	return value == 'pink';
+  })
+  console.log(flag1);
+  ```
 
 ##### some()和forEach(),filter()的区别
 
@@ -66,7 +94,7 @@ console.log(newArr);
 
 ### 字符串方法
 
-##### trim()
+#### trim()
 
 ```
 //trim 方法去除字符串两侧空格
@@ -116,9 +144,22 @@ div.innerHTML = str;
 
 ##### Object.defineProperty()
 
-![1](D:\web前端\JavaScript note\js进阶\img\11.12\1.png)
+定义对象中新属性或修改原有的属性
 
-![2](D:\web前端\JavaScript note\js进阶\img\11.12\2.png)
+```
+Object.defineProperty(obj,prop,descriptor)
+```
+
+- obj:必需。目标对象
+- prop：必须。需定义或者修改的属性的名字
+- descriptor：必需。目标属性所拥有的特性
+
+Object.defineProperty(）第三个参数descriptor说明：以对象形式{}书写
+
+- value:设置属性的值，默认为undefined
+- writable:值是否可以重写。true|false，默认为false
+- enumerable:目标属性是否可以被枚举.true|false 默认为false
+- configurable:目标属性是否可以被删除或者是否可以再次修改特性true|false 默认为false
 
 
 
