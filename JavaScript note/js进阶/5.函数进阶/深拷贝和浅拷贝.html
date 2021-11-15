@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+		<script>
+			//浅拷贝
+			var obj = {
+				id: 1,
+				name: 'andy',
+				msg: {
+					age: 18
+				},
+				color: ['pink', 'red']
+			};
+			var o = {};
+			// for (var k in obj) {
+			// 	//k是属性名，obj[k]是属性值
+			// 	o[k] = obj[k]; //相当于o.k
+
+			// }
+			// console.log(o);
+			// o.msg.age = 20; //测试更改o的msg会不会影响obj的
+			// console.log(obj);
+			////////////////////////////
+			// Object.assign(o,obj);
+			// console.log(o);
+
+			//深拷贝
+			//封装函数
+			function deepCopy(newobj, oldobj) {
+				for (var k in oldobj) {
+					//判断我们的属性值属于哪种数据类型，是简单还是复杂
+					//1.获取属性值 oldobj[k]
+					var item = oldobj[k];
+					//2.判断这个值是否是数组
+					if (item instanceof Array) {
+						newobj[k] = [];
+						deepCopy(newobj[k], item);
+					} else if (item instanceof Object) {
+						//3.判断这个值是否是对象
+						newobj[k] = {};
+						deepCopy(newobj[k], item)
+					} else {
+						//4.属于简单数据类型
+						newobj[k] = item;
+					}
+				}
+			}
+			deepCopy(o, obj);
+			console.log(o);
+			o.msg.age = 20;
+			console.log(obj);
+		</script>
+	</body>
+</html>
