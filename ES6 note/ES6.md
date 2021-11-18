@@ -147,3 +147,194 @@ ary = ['a','b']; //Assignment to constant variable.
 |   变量提升   | 不存在变量提升 | 不存在变量提升 |
 |   值可修改   |    值可更改    |   值不可更改   |
 
+### 解构赋值
+
+ES6中允许从数组中提取值，按照对应位置，对变量赋值。对象也可以实现解构
+
+#### 数组解构
+
+数组解构允许我们按照一一对应的关系从数组中提取值然后将值赋值给变量
+
+```js
+let [a,b,c] = [1,2,3];
+console.log(a);
+console.log(b);
+console.log(c);
+```
+
+如果解构不成功(没有对应的值)，变量的值为undefined
+
+```js
+let ary = [1,2,3];
+let [a,b,c,d,e] = ary;
+console.log(c);
+console.log(d);	//undefined
+console.log(e); //undefined
+```
+
+#### 对象解构
+
+对象解构允许我们使用变量的名字匹配对象的属性，匹配成功将对象属性的值赋值给变量
+
+```js
+let person = {name:'zhangsan',age:20};
+let { name,age } = person;
+console.log(name); //'zhangsan'
+console.log(age);	//20
+```
+
+另一种写法：
+
+这种写法支持变量的名字和对象中属性的名字不一样
+
+```js
+let { name:myName,age:myAge } = person;	//myName,myAge属于别名
+console.log(myName);
+console.log(myAge);
+```
+
+在解构语法中，冒号左边的name只用于属性匹配，冒号右边的myName才是真的变量
+
+### 箭头函数
+
+ES6中新增的定义函数的方式，箭头函数是用来简化函数定义语法的
+
+```js
+() => {}
+```
+
+小括号中放置形参，大括号里面代表函数体
+
+通常，我们会将箭头函数赋值给一个变量，变量名字就是函数名字，通过变量名字调用函数就可以了
+
+```js
+const fn = () => {}
+```
+
+若函数体中只有一句代码，且代码执行结果就是返回值，可以省略大括号
+
+```js
+function sum(num1,num2){
+	return num1 + num2;
+}
+//等同于
+const sum = (num1,num2) => num1 + num2;
+```
+
+如果形参只有一个，可以省略形参外面的小括号
+
+```js
+function fn(v){
+	alert(v);
+}
+
+const fn = v => {
+	alert(v);
+}
+```
+
+箭头函数不绑定this，没有自己的this关键字，箭头函数中的this，指向的是**函数定义位置的上下文this**，也就是说，this关键字指向箭头函数定义位置中的this。
+
+```js
+const obj = { name:'zhangsan'}
+function fn(){
+	console.log(this);
+	return () => {
+		console.log(this)
+	}
+}
+const resfn = fn.call(obj);
+resfn();
+```
+
+调用fn函数并通过call将fn()的this指向obj，由于箭头函数处于fn中，所以它里面的this指向的也是fn()指向的this，即也为obj。
+
+#### 箭头函数面试题
+
+```js
+var obj = {
+	age:20,
+	say:() => {
+		alert(this.age)
+	}
+}
+obj.say();		// alert(undefined)
+```
+
+obj是一个对象，不能产生作用域，实际上这个箭头函数被定义在了全局作用域下，所以在调用say方法时，this指向的是window，而window下面没有age属性，所以弹出了undefined
+
+在window对象下面添加一个age属性，证明obj.say方法弹出的是window对象的age属性
+
+```js
+var age = 100;
+var obj = {
+	age:20,
+	say:() => {
+		alert(this.age)
+	}
+}
+obj.say();		// alert(100)
+```
+
+### 剩余参数
+
+当函数实参个数大于形参个数时，可以将剩余的实参放入一个数组中
+
+```js
+function sum(first, ...args){
+	console.log(first);	//10
+	console.log(args);	//[20,30]
+}
+sum(10,20,30);
+
+const sum = (...args) => {
+    	let total = 0;
+    	args.forEach(item => total+=item;)
+    return total;
+};
+sum(10,20);
+sum(10,20,30);
+```
+
+##### 剩余参数和解构配合使用
+
+```js
+let ary = ['wang','zhang','li'];
+let[s1,...s2] = ary;
+console.log(s1); //wang
+console.log(s2); //array(2)=['zhang','li'];
+```
+
+### 扩展运算符（展开语法）
+
+扩展运算符可以将数组或者对象转为用逗号分隔的参数序列
+
+```js
+let ary = [1,2,3];
+...ary //1,2,3
+console.log(...ary); //1 2 3
+console.log(1，2，3); //1 2 3
+```
+
+因为逗号被当作console.log方法的参数分割符了，所以输出结果中是没有逗号的
+
+扩展运算符可以将数组拆分成以逗号分隔的参数序列
+
+#### 合并数组
+
+扩展运算符可以应用于合并数组
+
+```js
+let ary1 = [1,2,3];
+let ary2 = [3,4,5];
+let ary3 = [...ary1,...ary2];
+```
+
+ES5用concat实现拼接
+
+第二种方法 push方法
+
+```js
+ary1.push(...ary2); //将ary2追加到ary1后，若拼接多个用逗号分隔
+```
+
