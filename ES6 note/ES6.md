@@ -473,3 +473,71 @@ let html = `我是模板字符串${fn()}`;
 console.log(html);
 ```
 
+#### 实例方法startsWith()和endsWith()
+
+- startsWith(): 表示参数字符串是否在原字符串的头部，返回布尔值
+- endsWith():表示参数字符串是否在原字符串的尾部，返回布尔值
+
+```js
+let str = 'hello world!';
+str.startsWith('hello'); //true
+str.endsWith('!'); //true
+```
+
+#### 实例方法repeat()
+
+repeat方法表示将原字符串重复n次，返回一个新字符串
+
+```js
+console.log("y".repeat(5));
+```
+
+### Set数据结构
+
+ES6提供了新的数据结构Set。它类似于数组，但是成员的值都是唯一的，没有重复的值
+
+Set本身是一个构造函数，用来生成Set数据结构
+
+```js
+const s1 = new Set();
+console.log(s1.size);	// 0
+const s2 = new Set(["a","b"]);
+console.log(s2.size); // 2
+```
+
+利用Set结构可以做数组去重
+
+```js
+const s3 = new Set(["a","a","b","b"]);
+console.log(s3.size); //2    去重了
+const ary = [...s3];	//通过扩展运算符将set结构转换成以逗号分隔的零散量
+console.log(ary);
+```
+
+#### Set实例方法
+
+- add(value):添加某个值，返回Set结构本身
+- delete(value):删除某个值，返回一个布尔值表示删除是否成功
+- has(value):返回一个布尔值，表示该值是否为Set的成员
+- clear():清除所有成员，没有返回值
+
+```js
+const s = new Set();
+s.add(1).add(2).add(3);
+s.delete(2);
+s.has(2);
+s.clear();
+console.log(s.size()); // 0
+```
+
+#### 遍历
+
+Set结构的实例与数组一样，也拥有forEach()方法，用于对每个成员执行某种操作，没有返回值
+
+```js
+const s = new Set(['a','b','c']);
+s.forEach((item)=>{
+	console.log(item);
+})
+```
+
