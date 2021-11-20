@@ -541,3 +541,62 @@ s.forEach((item)=>{
 })
 ```
 
+### Symbol数据类型
+
+#### Symbol创建
+
+ES6引入了一种新的原始数据类型**Symbol**，表示独一无二的值，是JS语言的第七种数据类型，是一种类似于字符串的数据类型。
+
+- Symbol的值是唯一的，用来解决命名冲突的问题
+- Sybol的值不能与其它数据进行与逆行
+- Symbol定义的对象属性不能使用for...in...循环遍历，但是可以使用**Reflect.ownKeys**来获取对象的所有键名
+
+```js
+let s = Symbol('zhang');
+let s2 = Symbol('zhang');
+console.log(s2 === s3);	//false,它们的地址是不一样的
+//创建Symbol的第二种方式
+let s3 = Symbol.for('zhang');
+let s4 = Symbol.for('zhang');
+console.log(s3 === s4); //true
+```
+
+**JS的几种数据类型：**
+
+undefined , string , symbol , object, null, number, boolean
+
+#### Symbol使用场景
+
+来给对象添加属性和方法，表示独一无二的
+
+当直接给对象中添加方法中，有没有这个方法不确定，所以有风险，需要看结构再决定命名。用Symbol会变得更简单安全。
+
+```js
+//向对象中添加方法 up down
+let game = {
+	...
+}
+//声明一个对象
+let methods = {
+	up:Symbol(),
+	down:Symbol()
+}
+game[methods.up] = function(){
+    console.log('我是上');
+}
+game[methods.down] = function(){
+    console.log('我是下');
+}
+game[methods.up](); 	// 我是上
+//另一种方法
+let youxi = {
+    name:"kill",
+    [Symbol('say')]:function(){
+        console.log("shuo")
+    },
+    [Symbol('zibao')]:function(){
+        console.log('zibao');
+    }
+}
+```
+
