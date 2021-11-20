@@ -600,3 +600,137 @@ let youxi = {
 }
 ```
 
+### Promise
+
+ES6引入的异步编程的新解决方案。语法上Promise是一个构造函数，用来封装异步操作并可以获取其成功或失败的结果
+
+```js
+//实例化Promise对象
+const p = new Promise(function(resolve,reject){
+	setTimeout(function(){
+	// 异步操作
+	let data = '数据库中用户数据';
+        //调用resolve函数：成功
+        resolve(data);
+        //调用完resolve之后，这个promise对象的状态就会变成成功
+        //对象有三个状态，一个是初始化，一个是失败，一个是成功
+    
+        //调用reject：失败
+    let err = '数据读取失败';
+    reject(err);
+	},1000);
+});
+//调用promise对象的then方法
+p.then(function(value){
+	//状态为成功调用这个
+    console.log(value);
+},function(reason){
+    //状态为失败调这个
+    console.errpr(reason);
+})
+```
+
+通过这个方式把异步任务封装在了Promise对象里面，而且通过resolve和reject这两个函数来改变它的状态，改变之后来调用then方法里面的回调，倘若成功调用里面的第一个回调函数，若是失败调用第二个回调函数
+
+#### Promise案例
+
+1.使用Promise封装读取文件
+
+不用Promise实现：
+
+```js
+//这里用到了node.js的相关知识
+const fs = require('fs');
+//引入fs模块
+//调用方法读取文件
+fs.readFile('./为学.md',(err,data)=>{
+	//如果失败则抛出错误
+	if(err) throw err;
+	//如果没有出错，则输出内容
+	console.log(data.toString());
+})
+```
+
+使用Promise实现：
+
+```js
+//这里用到了node.js的相关知识
+const fs = require('fs');
+const p = new Promise(function(resolve,reject){
+	fs.readFile('./为学.md',(err,data)=>{
+		//判断如果失败
+		if(err) reject(err);
+		//如果成功
+		resolve(data);
+	});
+});
+p.then(function(value){
+	console.log(value.toString());
+	
+},function(reason){
+	console.log("读取失败");
+});
+```
+
+#### Promise封装ajax
+
+不用Promise实现：
+
+```js
+	//接口地址: https://api.apiopen.top/getJoke
+		//创建对象
+		const xhr = new XMLHttpRequest();
+		//初始化
+		xhr.open("GET","https://api.apiopen.top/getJoke");
+		//发送
+		xhr.send();
+		//绑定事件，处理响应结果
+		xhr.onreadystatechange =  function(){
+			//判断
+			if(xhr.readyState === 4){	// 等于4说明了所有的响应体都已经回来了
+				//判断响应状态码 200-299
+				if (xhr.status >=200 && xhr.status < 300){
+					//表示成功
+					console.log(xhr.response);
+				}else{
+					//如果失败
+					console.error(xhr.status);
+				}
+			}
+		}
+```
+
+使用Promise封装：
+
+```js
+		const p = new Promise((resolve,reject)=>{
+			
+		//创建对象
+		const xhr = new XMLHttpRequest();
+		//初始化
+		xhr.open("GET","https://api.apiopen.top/getJoke");
+		//发送
+		xhr.send();
+		//绑定事件，处理响应结果
+		xhr.onreadystatechange =  function(){
+			//判断
+			if(xhr.readyState === 4){	// 等于4说明了所有的响应体都已经回来了
+				//判断响应状态码 200-299
+				if (xhr.status >=200 && xhr.status < 300){
+					//表示成功
+					resolve(xhr.response);
+				}else{
+					//如果失败
+					reject(xhr.status);
+				}
+			}
+		}
+		})
+		//指定回调
+		p.then(function(value){
+			console.log(value);
+		},function(reason){
+			console.error(reason);
+		});
+```
+
