@@ -734,3 +734,76 @@ p.then(function(value){
 		});
 ```
 
+#### then方法
+
+```js
+const result = p.then(value => {
+			console.log(value)
+			//1.非promise类型的属性
+			//return '成功的值';
+			//2.是promise对象
+			//return new Promise((resolve,reject)=>{
+			//	resolve('ok');
+			//});
+			//3.抛出错误
+			//throw new Error('出错啦'); 也是返回错误状态
+		},reason=>{
+			console.warn(reason);
+		})
+		console.log(result);
+		//因为回调函数有延迟，所以先打印出result再打印出"出错啦"
+		
+		//链式调用,可以杜绝回调地狱
+		p.then(value=>{
+			
+		}).then(value=>{
+			
+		})
+```
+
+#### Promise实现读取多个文件
+
+原始方式
+
+```js
+//原始方式 引入fs模块
+const fs = require("fs");
+
+fs.readFile('./为学.md',(err,data1)=>{
+	fs.readFile('./观书.md',(err,data2)=>{
+		fs.readFile('./劝学.md',(err,data3)=>{
+			let result = data1 +data2+data3;
+			console.log(result);
+		});
+	});
+});
+```
+
+使用Promise实现
+
+```js
+//使用promise实现
+const p = new Promise((resolve,reject)=>{
+	fs.readFile('./为学.md',(err,data)=>{
+		resolve(data);
+	});
+});
+p.then(value=>{
+	return new Promise((resolve,reject)=>{
+		fs.readFile('./观书.md',(err,data)=>{
+		resolve([value,data]);
+	});
+	})
+}).then(value => {
+	return new Promise((resolve,reject)=>{
+		fs.readFile('./劝学.md',(err,data)=>{
+		//压入
+		value.push(data);
+		resolve(value)
+	});
+	})
+}).then(value=>{
+	console.log(value.join('\r\n'));
+});
+```
+
