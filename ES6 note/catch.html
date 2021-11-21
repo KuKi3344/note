@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+		<script>
+		const p = new Promise((resolve,reject)=>{
+			setTimeout(()=>{
+				//设置p对象的状态为失败，并设置失败的值
+				reject("error!");
+			},1000)
+		});
+		
+		// p.then(function(value){},function(reason){
+		// 	console.error(reason);
+		// });
+		p.catch(function(reason){
+			console.warn(reason);
+		})
+		let m = new Map();
+		m.set('name','zhang');
+		m.set('change',function(){
+			console.log('改变');
+		});
+		let key = {
+			school:'lu'
+		};
+		m.set(key,['beijing','shanghai']);
+		console.log(m);
+		</script>
+	</body>
+</html>

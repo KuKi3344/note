@@ -492,6 +492,53 @@ repeat方法表示将原字符串重复n次，返回一个新字符串
 console.log("y".repeat(5));
 ```
 
+### 对象方法扩展
+
+#### Object.is() 
+
+判断两个值是否完全相等
+
+```
+console.log(Object.is(120,120));	
+//作用和===很像 但是判断两个NAN是否相等时，is方法返回的true但是全等号返回的是false
+```
+
+#### Objcet.assign() 
+
+对象的合并
+
+```js
+const conf1 = {
+	host:'localhost',
+	port:3306,
+	name:'root',
+};
+const conf2 = {
+	host:'localhost3',
+	port:33064,
+	name:'root3',
+}
+Object.assign(conf1,conf2);
+//取并集，一样的属性第二个覆盖第一个
+```
+
+#### Object.setPrototypeOf() 
+
+设置原型对象
+
+```js
+const school = {
+	name:'zhang'
+}
+const cities = {
+	xiaoqu:['beijing','shanghai']
+}
+Object.setPrototypeOf(school.cities);
+console.log(Object.getPrototypeOf(school));	//获取原型对象
+```
+
+
+
 ### Set数据结构
 
 ES6提供了新的数据结构Set。它类似于数组，但是成员的值都是唯一的，没有重复的值
@@ -505,7 +552,9 @@ const s2 = new Set(["a","b"]);
 console.log(s2.size); // 2
 ```
 
-利用Set结构可以做数组去重
+**利用Set结构可以做数组去重**
+
+因为set集合具有唯一性，它会自动将重复的值去除
 
 ```js
 const s3 = new Set(["a","a","b","b"]);
@@ -513,6 +562,28 @@ console.log(s3.size); //2    去重了
 const ary = [...s3];	//通过扩展运算符将set结构转换成以逗号分隔的零散量
 console.log(ary);
 ```
+
+**求交集**
+
+```js
+let arr = [1,2,3,4,5,4,3,2];
+let arr2 = [4,5,6,7];
+let result = [...new Set(arr)].filter(item=>new Set(arr2).has(item));
+```
+
+**求并集**
+
+```js
+let result = [...new Set([...arr,...arr2])];
+```
+
+**求差集**
+
+```js
+let diff = [...new Set(arr)].filter(item=>!new Set(arr2).has(item));
+```
+
+
 
 #### Set实例方法
 
@@ -806,4 +877,75 @@ p.then(value=>{
 	console.log(value.join('\r\n'));
 });
 ```
+
+#### Promise对象catch方法
+
+用来指定Promise对象失败的一个回调
+
+```js
+	const p = new Promise((resolve,reject)=>{
+			setTimeout(()=>{
+				//设置p对象的状态为失败，并设置失败的值
+				reject("error!");
+			},1000)
+		});
+	
+		// p.then(function(value){},function(reason){
+		// 	console.error(reason);
+		// });
+		p.catch(function(reason){
+			console.warn(reason);
+		})
+//这个与注释部分达成的效果一样
+```
+
+### Map数据结构
+
+ES6提供了Map数据结构，它类似于对象，也是键值对的集合，但是键的范围不限于字符串，各种类型的值（包括对象）都可以当作键。Map也实现了iterator接口，所以可以使用**扩展运算符**和**for...of...**进行遍历
+
+- size：返回Map的元素个数
+- set：增加一个新元素，返回当前Map
+- get：返回键名对象的键值
+- has：检测Map里是否包含某个元素。返回bool值
+- clear清空集合，返回undefined
+
+```js
+let m = new Map();
+m.set('name','zhang');
+m.set('change',function(){
+	console.log('改变');
+});
+```
+
+第一个键名：name，值为zhang
+
+再增加一个键
+
+```js
+let key = {
+	school:'lu'
+};
+m.set(key,['beijing','shanghai']);
+```
+
+打印结果
+
+![5](D:\web前端\ES6 note\img\5.png)
+
+```js
+m.delete('name');//删除
+m.get(key);//获取
+console.log(m.get('change'));
+```
+
+**遍历与清空**
+
+```js
+for(let v of m){
+	console.log(v);
+}
+m.clear();
+```
+
+
 
