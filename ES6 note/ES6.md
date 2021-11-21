@@ -1221,7 +1221,7 @@ class Phone(){
 	}
 	set price(newVal){
 		console.log('价格属性被修改了');
-        _price = newVal;
+        _price = newVal;	//赋值操作
 	}
 }
 //实例化对象
@@ -1230,6 +1230,7 @@ s.price = 'free'; //当更改s的price属性时，触发set price，控制台输
 console.log(s.price); 
 //当获取s的price属性，触发get price，控制台输出 price被读取了并打印出get price中return的值——即为_price值
 s.price = 2;
-console.log(s.price);//1  修改s的price是无法改变的，因为固定从_price读取值，但是可以通过set改变
+console.log(s.price);//固定从_price读取值，但是可以通过在set里增加赋值操作通过改变_price来改变s.price
+
 ```
 
