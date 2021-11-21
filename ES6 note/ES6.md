@@ -671,6 +671,269 @@ let youxi = {
 }
 ```
 
+### 迭代器
+
+迭代器是一种接口，为各种不同的数据结构提供统一的访问机制。任何数据结构只要部署Iterator接口，就可以完成遍历操作。ES6创造了一种新的遍历命令for...of...循环，Iterator接口主要供for...of消费
+
+原生具备iterator接口的数据（可用for of遍历）
+
+- Array
+- Arguments
+- Set
+- Map
+- String
+- TypedArray
+- NodeList
+
+```js
+const xiyou = ['唐僧','孙悟空','猪八戒'];
+//使用for...of遍历数组
+for(let v in xiyou){
+	console.log(v); // 0 1 2 输出的是键名
+}
+for(let v of xiyou){
+	console.log(v); //唐僧，孙悟空，猪八戒 输出的是键值
+}
+```
+
+只要对象里有Symbol(Symbol.interator)属性，就可以使用for...of...遍历数组
+
+#### 工作原理
+
+1. 创建一个指针对象，指向当前数据结构的起始位置
+2. 第一次调用对象的next方法，指针自动指向数据结构的第一个成员
+3. 接下来不断调用next方法，指针一直在往后移动，直到指向最后一个成员
+4. 每调用next方法返回一个包含value和done属性的对象
+
+**注：**需要自定义遍历数据的时候，要想到迭代器
+
+#### 迭代器的应用
+
+```js
+const banji = {
+	name:"一班",
+	stus:[
+	'xiaoming',
+	'xiaoli',
+	'xiaohong',
+	'xiaomei'
+	]
+}
+//遍历这个对象
+for(let v of banji){
+	console.log(v);	//error!banji is not iterable
+}
+```
+
+object没有iterator,所以不支持for...of,要给对象写一个接口才可以使用for...of遍历
+
+```js
+//相当于迭代器原理
+[Symbol.iterator](){
+	let index = 0;
+	let that = this;	//也可以使用箭头函数
+	return {
+	next:function(){
+		if(index<that.stus.length){
+			const result =  {value:that.stus[index],done:false};
+		//下标自增
+		index++;
+		return result;
+		}else{
+			return {value:undefined,done:true};
+		}
+	}
+	};
+}
+```
+
+### 生成器
+
+生成器函数是ES6提供的一种异步编程解决方案，语法行为与传统函数完全不同
+
+生成器其实就是一个特殊的函数，之前的异步编程是利用纯回调函数
+
+```js
+function *gen(){
+	console.log("hello gennerator")
+}
+let iterator = gen();
+iterator.next();
+```
+
+声明和执行都比较特殊
+
+可以出现`yield`语句，相当于函数代码的分隔符，把函数代码切割成几块
+
+```js
+function *gen(){
+	console.log("111");
+    yield'第一个';
+    console.log("222");
+    yield'第二个';
+    console.log("333");
+    yield'第三个';
+    console.log("444");
+    yield'第四个';
+}
+let iterator = gen();
+iterator.next();
+iterator.next();
+iterator.next();
+iterator.next();
+```
+
+执行结果
+
+![6](D:\web前端\ES6 note\img\6.png)
+
+```js
+function *gen(){
+    yield'第一个';
+    yield'第二个';
+    yield'第三个';
+}
+for(let v of gen()){
+    console.log(v);
+}
+//输出结果为yield后面的值：
+//第一个
+//第二个
+//第三个
+```
+
+```js
+function *gen(){
+    yield'第一个';
+    yield'第二个';
+    yield'第三个';
+}
+let iterator = gen();
+console.log(iterator.next());
+console.log(iterator.next());
+console.log(iterator.next());
+console.log(iterator.next());
+```
+
+结果：
+
+![7](D:\web前端\ES6 note\img\7.png)
+
+#### 生成器函数参数
+
+```js
+function *gen(arg){
+	console.log(arg);
+	let one = yield 111;
+    console.log(one);
+	let two = yield 222;
+    console.log(two);
+	let three = yield 333;
+    console.log(three);
+}
+//执行获取迭代器对象
+let iterator = gen('AAA');
+//next方法可以传入实参
+console.log(iterator.next());
+console.log(iterator.next('BBB'));
+//第二次next方法传入的参数将作为第一个yield语句整体返回结果
+console.log(iterator.next('CCC'));
+////第三次next方法传入的参数将作为第二个yield语句整体返回结果
+console.log(iterator.next('DDD'));
+////第四次next方法传入的参数将作为第三个yield语句整体返回结果
+```
+
+![8](D:\web前端\ES6 note\img\8.png)
+
+#### 生成函数实例
+
+演示生成器函数在异步编程中的表现
+
+```js
+//1s后控制台输出111，2s后输出222，3s后输出333
+//但这样会形成回调地狱
+setTimeout(()=>{
+    console.log(111);
+    	setTimeout(()=>{
+   		console.log(222);
+   			setTimeout(()=>{
+   			console.log(333); 
+		},3000);
+	},2000);
+},1000);
+```
+
+通过生成器函数实现
+
+```js
+function one(){
+	setTimeout(()=>{
+		console.log(111);
+        iterator.next();
+	},1000)
+}
+function two(){
+	setTimeout(()=>{
+		console.log(222);
+        iterator.next();
+	},2000)
+}
+function three(){
+	setTimeout(()=>{
+		console.log(333);
+        iterator.next();
+	},3000)
+}
+function * gen*(){
+    yield one();
+    yield two();
+    yield three();
+}
+//调用生成器函数
+let iterator = gen();
+iterator.next();
+```
+
+**生成器函数实例二**
+
+模拟获取 用户数据  订单数据  商品数据
+
+每隔1s依次打印
+
+```js
+function getUsers(){
+	setTimeout(()=>{
+		let data = '用户数据';
+        iterator.next(data);
+	},1000);
+}
+function getOrders(){
+	setTimeout(()=>{
+		let data = '订单数据';
+         iterator.next(data);
+	},1000);
+}
+function getGoods(){
+	setTimeout(()=>{
+		let data = '商品数据';
+        iterator.next(data);
+	},1000);
+}
+function *gen(){
+	let users = yield getUsers();
+    console.log(users);
+    let orders = yield getOrders();
+    console.log(orders);
+  	let goods = yield getGoods();
+    console.log(goods)
+}
+//调用生成器函数
+let iterator = gen();
+iterator.next();
+```
+
+这就是生成器函数在异步任务的一个表现
+
 ### Promise
 
 ES6引入的异步编程的新解决方案。语法上Promise是一个构造函数，用来封装异步操作并可以获取其成功或失败的结果
@@ -947,5 +1210,26 @@ for(let v of m){
 m.clear();
 ```
 
+### class中get和set设置
 
+```js
+let _price = 1;
+class Phone(){
+	get price(){
+		console.log("price属性被读取了");
+		return _price;
+	}
+	set price(newVal){
+		console.log('价格属性被修改了');
+        _price = newVal;
+	}
+}
+//实例化对象
+let s = new Phone();
+s.price = 'free'; //当更改s的price属性时，触发set price，控制台输出：价格属性被更改了
+console.log(s.price); 
+//当获取s的price属性，触发get price，控制台输出 price被读取了并打印出get price中return的值——即为_price值
+s.price = 2;
+console.log(s.price);//1  修改s的price是无法改变的，因为固定从_price读取值，但是可以通过set改变
+```
 

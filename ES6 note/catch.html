@@ -6,29 +6,87 @@
 	</head>
 	<body>
 		<script>
-		const p = new Promise((resolve,reject)=>{
-			setTimeout(()=>{
-				//设置p对象的状态为失败，并设置失败的值
-				reject("error!");
-			},1000)
-		});
+		// const p = new Promise((resolve,reject)=>{
+		// 	setTimeout(()=>{
+		// 		//设置p对象的状态为失败，并设置失败的值
+		// 		reject("error!");
+		// 	},1000)
+		// });
 		
 		// p.then(function(value){},function(reason){
 		// 	console.error(reason);
 		// });
-		p.catch(function(reason){
-			console.warn(reason);
-		})
-		let m = new Map();
-		m.set('name','zhang');
-		m.set('change',function(){
-			console.log('改变');
-		});
-		let key = {
-			school:'lu'
-		};
-		m.set(key,['beijing','shanghai']);
-		console.log(m);
+		// p.catch(function(reason){
+		// 	console.warn(reason);
+		// })
+		// let m = new Map();
+		// m.set('name','zhang');
+		// m.set('change',function(){
+		// 	console.log('改变');
+		// });
+		// let key = {
+		// 	school:'lu'
+		// };
+		// m.set(key,['beijing','shanghai']);
+		// console.log(m);
+		// function *gen(){
+		//     yield'第一个';
+		//     yield'第二个';
+		//     yield'第三个';
+		// }
+		// let iterator = gen();
+		// console.log(iterator.next());
+		// console.log(iterator.next());
+		// console.log(iterator.next());
+		// console.log(iterator.next());
+		// function *gen(arg){
+		// 	console.log(arg);
+		// 	let one = yield 111;
+		//     console.log(one);
+		// 	let two = yield 222;
+		//     console.log(two);
+		// 	let three = yield 333;
+		//     console.log(three);
+		// }
+		// //执行获取迭代器对象
+		// let iterator = gen('AAA');
+		// //next方法可以传入实参
+		// console.log(iterator.next());
+		// console.log(iterator.next('BBB'));
+		// //第二次next方法传入的参数将作为第一个yield语句整体返回结果
+		// console.log(iterator.next('CCC'));
+		// ////第三次next方法传入的参数将作为第二个yield语句整体返回结果
+		// console.log(iterator.next('DDD'));
+		// ////第四次next方法传入的参数将作为第三个yield语句整体返回结果
+		function getUsers(){
+			setTimeout(()=>{
+				let data = '用户数据';
+		        iterator.next(data);
+			},1000);
+		}
+		function getOrders(){
+			setTimeout(()=>{
+				let data = '订单数据';
+		         iterator.next(data);
+			},1000);
+		}
+		function getGoods(){
+			setTimeout(()=>{
+				let data = '商品数据';
+		        iterator.next(data);
+			},1000);
+		}
+		function *gen(){
+			let users = yield getUsers();
+		    console.log(users);
+		    let orders = yield getOrders();
+		    console.log(orders);
+		  	let goods = yield getGoods();
+		    console.log(goods)
+		}
+		//调用生成器函数
+		let iterator = gen();
+		iterator.next();
 		</script>
 	</body>
 </html>
