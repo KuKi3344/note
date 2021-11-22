@@ -18,9 +18,10 @@
 		// console.log(result);
 		
 		//正向断言
-		let str = 'hs1351351我是字符串555嘿嘿';
-		const reg = /\d+(?=嘿)/;
-		const result = reg.exec(str);
+		let str = 'JS1351351我是字符串555嘿嘿';
+		// const reg = /\d+(?=嘿)/;	//判断数字后面的字是否是嘿
+		// const result = reg.exec(str);
+		const reg = /(?<=串)\d+/;	判断数字前面的字是否是 串 这个字
 		console.log(result);
 		</script>
 	</body>
