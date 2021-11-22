@@ -1352,9 +1352,13 @@ const p = new Promise((resolve,reject)=>{
 
 #### async和await结合实践
 
-二者结合读取多个文件内容
+**async和await结合读取多个文件内容**
 
 依旧利用node.js的fs模块实现
+
+**注：**fs时filesystem的缩写，该模块提供本地文件的读写能力，基本上时POSIX文件操作命令的简单包装。但是，这个模块几乎对所有操作提供异步和同步两种操作方式，供开发者选择。
+
+readFile方法的第一个参数是文件的路径，第二个参数是读取完成后的回调函数，该函数的第一个参数是发生错误时的错误对象，第二个参数是代表文件内容的Buffer实例（故需要toString来转化）。
 
 ```js
 	//引入fs模块
@@ -1406,5 +1410,47 @@ const p = new Promise((resolve,reject)=>{
 				console.log(guanshu.toString());
 			}
 			main();
+```
+
+**async和await结合封装Ajax请求**
+
+```js
+	//发送AJAX请求，返回的结果是Promise对象
+	function sendAJAX(url) {
+		return new Promise((resolve, reject) => {
+			//1.创建对象
+			const x = new XMLHttpRequest();
+	
+			//2.初始化
+			x.open('GET', url)
+	
+			//3.发送请求
+			x.send();
+	
+			//4.事件绑定
+			x.onreadystatechange = function() {
+				if (x.readyState === 4) {
+					if (x.status >= 200 && x.status < 300) {
+						//成功辣
+						resolve(x.response);
+					}else{
+						//失败
+						reject(x.status);
+					}
+				}
+			}
+		})
+	}
+	// promise then方法测试
+	// sendAJAX("https://api.apiopen.top/getJoke").then(value=>{
+	// 	console.log(value);
+	// },reason=>{})
+	//async 和await测试
+	async function main(){
+		//发送AJAX请求
+		//函数返回是一个promise对象
+		let result = await sendAJAX("https://api.apiopen.top/getJoke");
+		console.log(result);
+	}
 ```
 
