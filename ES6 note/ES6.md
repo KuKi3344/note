@@ -614,7 +614,7 @@ s.forEach((item)=>{
 
 ### Symbol数据类型
 
-#### Symbol创建
+#### Symbol与Symbol.for()
 
 ES6引入了一种新的原始数据类型**Symbol**，表示独一无二的值，是JS语言的第七种数据类型，是一种类似于字符串的数据类型。
 
@@ -632,6 +632,10 @@ let s3 = Symbol.for('zhang');
 let s4 = Symbol.for('zhang');
 console.log(s3 === s4); //true
 ```
+
+如果我们要重复使用一个 symbol 时，可以用到 Symbol.for() 方法。Symbol.for() 方法接受一个字符串参数，会在全局中搜索有没有以该参数命名的 symbol 的值，如果查找到就返回这个值。如果没有查到则重新生成一个值，并将该值以参数名称注册到全局。
+
+Symbol.for() 和 Symbol() 方法都会生成新的 symbol 类型的值，不同的是 Symbol.for() 方法会查找命名参数是否在全局中注册过，如果注册过的就不会创建新的值，而是会直接返回，所以我们可以使用到相同的 symbol 值。但使用 Symbol() 方法每次都会创建一个新的值，且不会注册到全局。
 
 **JS的几种数据类型：**
 
@@ -672,7 +676,145 @@ let youxi = {
 }
 ```
 
-最大用处：内置符号 （**待补充**）
+#### Symbol.keyFor()
+
+Symbol.keyFor() 方法表示获取一个 symbol 的值在全局中注册的命名参数 key，只有使用 Symbol.for() 创建的值才会有注册的命名参数，使用 Symbol() 生成的值则没有：
+
+```js
+let s4 = Symbol('sym');
+let s5 = Symbol.for('sym');
+Symbol.keyFor(s4); // undefined
+Symbol.keyFor(s5); // sym
+```
+
+#### Symbol.hasInstance
+
+Symbol.hasInstance 指向一个内部方法，当使用 instanceof 运算符时，判断一个实例是否为某种类型时，会调用这个内部方法。
+
+例如在调用：foo instanceof Foo 时，实际是调用 FooSymbol.hasInstance;
+
+```js
+class Foo {
+  [Symbol.hasInstance](foo){
+    return foo instanceof Array;
+  }
+}
+[1,2,3] instanceof new Foo(); // true
+
+```
+
+#### Symbol.isConcatSpreadable
+
+该属性的值是一个布尔型，表示当调用 Array.prototype.concat() 方法时，是否可以展开。
+Symbol.isConcatSpreadable的默认值为undefined
+
+```js
+let arr = [1,2,3];
+arr.concat([4,5]); // [1, 2, 3, 4, 5]
+//数组默认可以展开，当设置了Symbol.isConcatSpreadable = false
+let arr = [1,2,3];
+arr[Symbol.isConcatSpreadable] = false;
+arr.concat([4,5]); // [Array(3), 4, 5]
+```
+
+#### Symbol.species
+
+对象的 Symbol.species 属性指向一个构造函数，在创建衍生对象可以更改构造函数指向。
+
+```JS
+class MyArr extends Array{}
+let a = new MyArr(1,2,3);
+let b = a.filter(e => e >= 2);
+a instanceof MyArr; // true
+b instanceof MyArr; // true
+```
+
+其中变量 b 是变量 a 的衍生对象，变量 b 也是 MyArr 的实例，而通过设置 Symbol.species 可以更改这个衍生对象的构造函数：
+
+```JS
+class MyArr extends Array{
+    static get [Symbol.species](){
+        return Array;
+    }
+}
+let a = new MyArr(1,2,3);
+let b = a.filter(e => e >= 2);
+a instanceof MyArr; // true
+b instanceof MyArr; // false
+```
+
+实际上，默认的 Symbol.species 属性等同：
+
+```JS
+static get [Symbol.species]() {
+  return this;
+}
+```
+
+总之该属性实在实例运行过程中，需要再次调用自身构造函数时，可以使用指定的构造函数。
+
+#### Symbol.match
+
+该属性指向一个函数，当执行 str.match(object) 时，如果该属性存在，会调用该属性指向的方法：
+
+```JS
+let str = 'e';
+class StrObj {
+  [Symbol.match](string){
+      return 'hello'.indexOf(string);
+  }
+}
+str.match(new StrObj()); // 1
+// 等同于
+new StrObj()[Symbol.match](str); // 1
+```
+
+#### Symbol.replace
+
+该属性指向一个方法，当对象被 String.prototype.replace 方法调用时，会执行该方法：
+
+```JS
+String.prototype.replace(searchValue, replaceValue)
+// 等同于
+searchValue[Symbol.replace](this, replaceValue)
+```
+
+#### Symbol.search
+
+对象的 Symbol.search 属性，指向一个方法，当该对象被String.prototype.search 方法调用时，会返回该方法的返回值。
+
+```JS
+String.prototype.search(regexp)
+// 等同于
+regexp[Symbol.search](this)
+```
+
+#### Symbol.split
+
+对象的 Symbol.split 属性，指向一个方法，当该对象被 String.prototype.split 方法调用时，会返回该方法的返回值。
+
+```JS
+String.prototype.split(separator, limit)
+// 等同于
+separator[Symbol.split](this, limit)
+```
+
+#### Symbol.iterator
+
+对象的 Symbol.iterator 属性，指向该对象的默认遍历器方法。
+
+```JS
+const myIterable = {};
+myIterable[Symbol.iterator] = function* () {
+  yield 1;
+  yield 2;
+  yield 3;
+};
+
+[...myIterable] // [1, 2, 3]
+```
+
+
 
 ### 迭代器
 
