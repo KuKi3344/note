@@ -627,6 +627,7 @@ let s = Symbol('zhang');
 let s2 = Symbol('zhang');
 console.log(s2 === s3);	//false,它们的地址是不一样的
 //创建Symbol的第二种方式
+// 全局符号注册表的方式
 let s3 = Symbol.for('zhang');
 let s4 = Symbol.for('zhang');
 console.log(s3 === s4); //true
@@ -670,6 +671,8 @@ let youxi = {
     }
 }
 ```
+
+最大用处：内置符号 （**待补充**）
 
 ### 迭代器
 
@@ -972,6 +975,8 @@ p.then(function(value){
 
 不用Promise实现：
 
+**注：**使用node.js需要下载相关环境，且在js文件中打开终端，输入node 文件路径，才能运行，具体fs模块相关，在async模块有解释
+
 ```js
 //这里用到了node.js的相关知识
 const fs = require('fs');
@@ -1232,5 +1237,174 @@ console.log(s.price);
 s.price = 2;
 console.log(s.price);//固定从_price读取值，但是可以通过在set里增加赋值操作通过改变_price来改变s.price
 
+```
+
+### async和await
+
+async和await两种语法结合可以让异步代码像同步代码一样
+
+#### async函数
+
+1. async函数的返回值为promise对象
+2. promise对象的结果由async函数执行的返回值决定
+
+```js
+async function fn(){
+//返回一个字符串，一个数字，null，undefined等等，只要返回的结果不是一个promise类型的对象，则结果就是一个成功的promise对象
+		 return 'yes';
+	}
+		const result = fn();
+		console.log(result);
+```
+
+PromiseStatus 变成fulfilled和resolved意思差不多
+
+![](D:\web前端\ES6 note\img\9.png)
+
+```js
+async function fn(){
+//抛出错误，返回的结果是一个失败的promise
+			throw new Error('出错啦');
+	}
+		const result = fn();
+		console.log(result);
+```
+
+![10](D:\web前端\ES6 note\img\10.png)
+
+```js
+//如果返回的结果是一个Promise对象（通常是这种情况）
+async function fn(){
+		return new Promise((resolve,reject)=>{
+				resolve('成功的数据');
+			});
+}
+```
+
+调用resolve之后，这个对象就会变成一个成功的promise，一旦里面成功,fn返回的结果也是成功的，且它成功的值就是函数返回的promise成功的值。
+
+```js
+async function fn(){
+		return new Promise((resolve,reject)=>{
+				reject('失败错误');
+			});
+}
+```
+
+失败同理，调用reject，这个对象就会变成一个失败的promise，里面失败，fn返回的结果也是失败的，且他失败的值就是函数返回的promise失败的值。
+
+![11](D:\web前端\ES6 note\img\11.png)
+
+``` js
+//调用then方法
+async function fn(){
+			return new Promise((resolve,reject)=>{
+				resolve('成功的数据');
+				//reject('失败错误');
+			});
+		}
+		const result = fn();
+		//调用then方法
+		result.then(value=>{
+			console.log(value);
+		},reason=>{
+			console.warn(reason);
+		})
+```
+
+第一个为成功时的结果，第二个为失败时返回的结果
+
+![12](D:\web前端\ES6 note\img\12.png)
+
+#### await表达式
+
+- await必须写在async函数中
+
+- await右侧的表达式一般为promise对象
+- await返回的是promise成功的值
+- await的promise失败了，就会抛出异常，需要通过try...catch捕获处理
+
+```js
+//创建promise对象	
+const p = new Promise((resolve,reject)=>{
+			//resolve("成功的值");
+			reject("失败啦");
+		})
+		//await返回的结果就是promise对象成功的值
+		async function main(){
+			try{
+				let result = await p;
+				console.log(result);
+			}catch(e){
+				//再catch里得到失败的结果并进行一些处理
+				console.log(e);	
+			}
+			
+		}
+		main();
+```
+
+**注：**await必须放在async中，但async函数中可以没有await
+
+打印结果：
+
+![13](D:\web前端\ES6 note\img\13.png)
+
+#### async和await结合实践
+
+二者结合读取多个文件内容
+
+依旧利用node.js的fs模块实现
+
+```js
+	//引入fs模块
+			const fs = require("fs");
+
+			//读取 为学 
+			function readweixue() {
+				return new Promise((resolve, reject) => {
+					fs.readFile("./为学.md", (err, data) => {
+						//失败
+						if (err) reject(err);
+						//成功
+						resolve(data);
+					})
+				})
+			}
+			//读取 观书
+			function readguanshu() {
+				return new Promise((resolve, reject) => {
+					fs.readFile("./观书.md", (err, data) => {
+						//失败
+						if (err) reject(err);
+						//成功
+						resolve(data);
+					})
+				})
+			}
+			//读取 劝学
+			function readquanxue() {
+				return new Promise((resolve, reject) => {
+					fs.readFile("./劝学.md", (err, data) => {
+						//失败
+						if (err) reject(err);
+						//成功
+						resolve(data);
+					})
+				})
+			}
+			//声明一个async函数
+			async function main() {
+				//获取为学内容
+				let weixue = await readweixue();
+				//获取劝学内容
+				let quanxue = await readquanxue();
+				//获取观书内容
+				let guanshu = await readguanshu();
+				console.log(weixue.toString());
+				console.log(quanxue.toString());
+				console.log(guanshu.toString());
+			}
+			main();
 ```
 
