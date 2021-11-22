@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+		<script>
+		// //声明一个字符串
+		// // let str = '<a href="https://www.baidu.com/">百度</a>';
+		// // //提取url与标签文本
+		// // const reg = /<a href="(.*)">(.*)<\/a>/;
+		// let str = '<a href="https://www.baidu.com/">百度</a>';
+		// //提取url与标签文本
+		// const reg = /<a href="(?<url>.*)">(?<text>.*)<\/a>/;
+		// //执行
+		// const result = reg.exec(str);
+		// console.log(result);
+		
+		//正向断言
+		let str = 'hs1351351我是字符串555嘿嘿';
+		const reg = /\d+(?=嘿)/;
+		const result = reg.exec(str);
+		console.log(result);
+		</script>
+	</body>
+</html>
