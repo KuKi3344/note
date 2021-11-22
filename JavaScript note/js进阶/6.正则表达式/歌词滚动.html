@@ -4,63 +4,137 @@
 		<meta charset="utf-8">
 		<title></title>
 		<style>
+
 		body{
-			background: linear-gradient(180deg,#303030,#3a3a3a);
+			background: linear-gradient(0deg,#303030,#323232);
+		
 		}
-		span{
-			display:block;
-			width:500px;
-			height:400px;
-			border:none;
+		.title{
 			position:absolute;
 			left:50%;
-			top:50%;
-			transform: translate(-50%,-50%);
-			line-height:100px;
-			text-align:center;
-			font-size:18px;
-			font-family:"microsoft yahei";
+			top:70px;
+			transform: translateX(-50%);
+			width:400px;
+			height:100px;
 			color:#fff;
-			
+		}
+		.title span{
+			display: block;
+			text-align: center;
+			line-height:40px;
+		}
+		.name{
+			font-size: 30px;
+			letter-spacing: 1px;
+		}
+		.sing{
+			font-size: 14px;
+		}
+		.box{
+			width:500px;
+			height:370px;
+			position:absolute;
+			left:50%;
+			transform: translateX(-50%);
+			border:none;
+			overflow:hidden;
+			color:#fff;
+			top:200px;
+		}
+		ul{
+			position: absolute;
+			top:200px;
+			width:100%;
+			padding:0;
+			transition:top 2s linear;
+		}
+		ul > li{
+			list-style: none;
+			text-align:center;
+			width:100%;
+			height:30px;
+			line-height: 30px;
+			font-size:18px;		
+		}
+		ul > li.active{
+			color:#5b7a8d;
+			font-size:25px;
 		}
 		audio{
 			position:absolute;
 			left:50%;
-			top:10%;
-			transform: translate(-50%,0);
+			transform: translateX(-50%);
+			top:600px;
 		}
 		</style>
 	</head>
 	<body>
-		<!-- controls属性，显示控制器 -->
+		<div class="title">
+			<span class = "name"></span>
+			<span class = "sing"></span>
+		</div>
+		<div class="box">
+		<ul>
+		</ul>	
+		</div>
 		<audio src="./song.mp3" controls></audio>
-		<span></span>
-		<script src="./song.js"></script>
+		<script src = "./song.js"></script>
 		<script>
-		//思路：随着音乐播放，随时拿到当前播放的时间
-		//取到歌词字符串里面进行比对，找到一个时间匹配的歌词
-		//把后面的歌词内容拿出来，填到span里面
-		//audio和video标签都有一个事件叫做timeupdate，只要时间在变化就会触发
-		//audio有一个duration属性，表示总时间，有一个currentTime，表示当前时间，以秒为单位
-		//格式化时间为00：00这样的形式
-		//去到歌词字符串里面取出对应的内容=>正则得拼接一段字符串，所以使用new RegExp()创建，因为只有这能拼接字符串
-		//  /\[timeStr\.\d{2}\](.+)/首先匹配中括号，由于中括号有特殊意义所以需要用\转义，.也是同理
-		//因为要单独得到字符串，所以要在.+外面套上小括号来和前面的时间分开
-		var audio = document.querySelector('audio');
-		var span = document.querySelector('span');
+		//获取歌名和歌手名并插到固定位置
+		const songname = document.querySelector('.name');
+		const singername = document.querySelector('.sing');
+		songname.innerHTML = name;
+		singername.innerHTML = singer;
+		//歌词滚动
+		//先用歌词数组渲染页面 把歌词拆开
+		//准备两个空的数组  时间数组与歌词数组
+		const timeArr = [];
+		const lrcArr = [];
+		const reg = /\[(\d{2}:\d{2})\.\d{2}\](.+)/g;
+		//循环捕获，每次捕获的内容是不一样的,每次捕获完都会往后移一个
+		let tmp = reg.exec(lrcStr);
+		while(tmp){
+			//tmp[1]装着时间
+			//tmp[2]装着歌词
+			//timeArr与lrcArr一定是对应的，长度相等
+			timeArr.push(tmp[1]);
+			lrcArr.push(tmp[2]);
+			tmp = reg.exec(lrcStr);
+		}
+		//获取ul标签
+		const ul = document.querySelector('.box > ul');
+		//遍历循环歌词数组，生成li放到ul里面
+		let str = '';
+		lrcArr.forEach((item,index) => {
+			str+=`<li class="${ index === 0 ? 'active' : '' }" >${ item }</li>`;//`是ES6新引入的模板字符串，用${}引入变量
+		})
+		ul.innerHTML = str;
+		//随着音乐的播放，拿到对应的时间
+		//把时间格式化 00：00的格式
+		
+		//获取audio标签
+		const audio = document.querySelector('audio');
+		//绑定事件
 		audio.addEventListener('timeupdate',function(){
-			//拿到当前时间
-			const time = audio.currentTime;
-			//格式化时间
-			const minutes = parseInt(time / 60);
-			const seconds = parseInt(time % 60);	//求秒数并取整
-			const timeStr = (minutes < 10 ? '0' + minutes : minutes )+ ':' + (seconds < 10 ? '0' + seconds :seconds);
-			
-			//组装正则表达式
-			const reg = new RegExp('\\['+timeStr+'\\.\\d{2}\\](.+)'); //在字符串里转义符要变成\\而不是\
-			let lrc = reg.exec(lrcStr);
-			lrc = lrc ? lrc[1] : ''; //如果匹配不到，当前歌词就设为空
-			span.innerHTML = lrc ? lrc : span.innerHTML;//有的话就用新的这句，没有就用上一句
+				const time = audio.currentTime;
+				const minutes = parseInt(time / 60);
+				const seconds = parseInt(time % 60);	//求秒数并取整
+				const audiotime = (minutes < 10 ? '0' + minutes : minutes )+ ':' + (seconds < 10 ? '0' + seconds :seconds);
+				if(audiotime === '00:00'){
+					ul.style.top = 200+'px';
+				}
+		//找到时间数组里面对应时间的索引
+		const index = timeArr.findIndex(item => item === audiotime);	//timeArr是装着时间节点的数组,它的索引和它对应的歌词的索引是一样的
+		//找到timeArr里对应着当前播放器播放到的时间点，就能找到当前时间对应的那句歌词了
+		//判断只要不是-1，就让ul移动，每一句向上移动30px;
+		//如果是[0]不需要移动,即为第一句歌词
+		//给ul赋值
+		if (index!== -1){
+			ul.style.top = -index * 30 + 200 + 'px';
+			[...ul.children].forEach(item => item.className = '');
+			ul.children[index].className = 'active';
+		}
+		//设置当前index的歌词为active
 		})
 		</script>
 	</body>

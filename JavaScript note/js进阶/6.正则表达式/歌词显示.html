@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style>
+		body{
+			background: linear-gradient(180deg,#303030,#3a3a3a);
+		}
+		span{
+			display:block;
+			width:500px;
+			height:300px;
+			border:none;
+			position:absolute;
+			left:50%;
+			top:50%;
+			transform: translate(-50%,-50%);
+			line-height:100px;
+			text-align:center;
+			font-size:20px;
+			font-family:"microsoft yahei";
+			color:#fff;
+			
+		}
+		audio{
+			position:absolute;
+			left:50%;
+			top:10%;
+			transform: translate(-50%,0);
+		}
+		</style>
+	</head>
+	<body>
+		<!-- controls属性，显示控制器 -->
+		<audio src="./song.mp3" controls></audio>
+		<span></span>
+		<script src="./song.js"></script>
+		<script>
+		//思路：随着音乐播放，随时拿到当前播放的时间
+		//取到歌词字符串里面进行比对，找到一个时间匹配的歌词
+		//把后面的歌词内容拿出来，填到span里面
+		//audio和video标签都有一个事件叫做timeupdate，只要时间在变化就会触发
+		//audio有一个duration属性，表示总时间，有一个currentTime，表示当前时间，以秒为单位
+		//格式化时间为00：00这样的形式
+		//去到歌词字符串里面取出对应的内容=>正则得拼接一段字符串，所以使用new RegExp()创建，因为只有这能拼接字符串
+		//  /\[timeStr\.\d{2}\](.+)/首先匹配中括号，由于中括号有特殊意义所以需要用\转义，.也是同理
+		//因为要单独得到字符串，所以要在.+外面套上小括号来和前面的时间分开
+		var audio = document.querySelector('audio');
+		var span = document.querySelector('span');
+		audio.addEventListener('timeupdate',function(){
+			//拿到当前时间
+			const time = audio.currentTime;
+			//格式化时间
+			const minutes = parseInt(time / 60);
+			const seconds = parseInt(time % 60);	//求秒数并取整
+			const timeStr = (minutes < 10 ? '0' + minutes : minutes )+ ':' + (seconds < 10 ? '0' + seconds :seconds);
+			
+			//组装正则表达式
+			const reg = new RegExp('\\['+timeStr+'\\.\\d{2}\\](.+)'); //在字符串里转义符要变成\\而不是\
+			let lrc = reg.exec(lrcStr);
+			lrc = lrc ? lrc[1] : ''; //如果匹配不到，当前歌词就设为空
+			span.innerHTML = lrc ? lrc : span.innerHTML;//有的话就用新的这句，没有就用上一句
+		})
+		</script>
+	</body>
+</html>
