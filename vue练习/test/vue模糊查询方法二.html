@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<script src="./vue.js"></script>
+	</head>
+	<body>
+		<div id="box">
+			<input type="text" v-model="keyword">
+			<ul>
+				<li v-for="data in mymethod()">{{data}}</li>
+			</ul>
+		</div>
+		<script>
+			var vm = new Vue({
+				el: "#box",
+				data: {
+					datalist: ["aaa", "bbb", "ccc", "dde", "add", "cbe"],				
+					keyword:"",
+				},
+				methods:{
+					mymethod:function(){				
+						return vm.datalist.filter(item=>item.includes(vm.keyword.replace(/\s*/g,"")));
+					},
+				}
+			})
+		</script>
+	</body>
+</html>

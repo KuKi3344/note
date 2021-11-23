@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<script src="./vue.js"></script>
+	</head>
+	<body>
+		<div id="box">
+			<input type="text" v-model="word" @keyup="handleInput">
+			<ul>
+				<li v-for="data in datalist">{{data}}</li>
+			</ul>
+		</div>
+		<script>
+			var vm = new Vue({
+				el: "#box",
+				data: {
+					datalist: ["aaa", "bbb", "ccc", "dde", "add", "cbe"],
+					originlist: ["aaa", "bbb", "ccc", "dde", "add", "cbe"],
+					word:"",
+					keyword:"",
+				},
+				methods:{
+					handleInput(){
+						//去除关键字内所有的空格以防过滤出错
+						vm.keyword = vm.word.replace(/\s*/g,"");
+						//过滤数组 filter 不会改变原数组
+						vm.datalist = vm.originlist.filter(item=>item.includes(vm.keyword));
+						
+					}
+				}
+			})
+		</script>
+	</body>
+</html>
