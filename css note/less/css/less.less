@@ -1,3 +1,23 @@
+	/*这是暴露出去的注释，编译后会留下*/
+	//这是不会编译过去的注释
+	/*可以用@定义变量*/
+	/*当定义属性或者选择器时，用的时候要用.@{},或者#@{}，或者@{}*/
+	
+	.juzhong(@w:10px,@h:10px,@c:pink){
+		position: absolute;
+		left:0;
+		top:0;
+		right:0;
+		bottom:0;
+		margin:auto;
+		height:@h;
+		width:@w;
+		background-color: @c;
+		&:hover{
+			background-color: pink;
+		}
+		
+	}
 	.wrap{
 				margin:0 auto;
 				position:absolute;
@@ -5,16 +25,11 @@
 				top:300px;
 				height:400px;
 				width:300px;
-				background-color: pink;
+				background-color: deeppink;
 				.inner{
-					position: absolute;
-					left:0;
-					top:0;
-					left:0;
-					bottom:0;
-					margin:auto;
-					height:10px;
-					width:100px;
-					background-color: #fff;
+					.juzhong(100px,100px,green);				
+					}
+				.inner2{
+					.juzhong();
 					}
 			}

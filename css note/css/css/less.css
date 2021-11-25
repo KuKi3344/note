@@ -1,0 +1,23 @@
+/*这是暴露出去的注释，编译后会留下*/
+/*可以用@定义变量*/
+/*当定义属性或者选择器时，用的时候要用@{}*/
+wrap {
+  margin: 0 auto;
+  position: absolute;
+  left: 300px;
+  top: 300px;
+  height: 400px;
+  width: 300px;
+  background-color: #ffc0cb;
+}
+wrap .inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  height: 100px;
+  width: 100px;
+  background-color: #fff;
+}
