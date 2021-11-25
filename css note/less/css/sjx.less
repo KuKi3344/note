@@ -1,0 +1,29 @@
+#wrap > .sjx{
+	.triangle(L,40px,red);
+	}
+	.triangle(){
+		width:0;
+		height:0;
+		border-style:solid;
+	}
+.triangle(L,@w,@c){		//这里的L相当于标识符
+	border-width:@w;
+	border-color: transparent transparent transparent @c;
+	.triangle();
+	
+}
+.triangle(R,@w,@c){		//这里的L相当于标识符
+	border-width:@w;
+	border-color: transparent @c transparent transparent;
+	.triangle();
+}
+.triangle(T,@w,@c){		//这里的L相当于标识符
+	border-width:@w;
+	border-color: @c transparent transparent transparent;
+	.triangle();
+}
+.triangle(B,@w,@c){		//这里的L相当于标识符
+	border-width:@w;
+	border-color: transparent transparent @c transparent;
+	.triangle();
+}

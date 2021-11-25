@@ -98,6 +98,20 @@ less中的变量都是块级作用域。
 
 2. 没有输出的混合
 
+   ```less
+   .juzhong(){
+   	...
+   }
+   .inner1{
+       .juzhong();
+   }
+   .inner2{
+       .juzhong();
+   }
+   ```
+
+   此时.juzhong不会输出到css文件中。只要带括号就不会输出
+
 3. 带参数的混合
 
 ```less
@@ -193,4 +207,46 @@ less中的变量都是块级作用域。
 ```
 
 这样就能对应上参数了
+
+5.匹配模式
+
+可以给混合加上标识符,根据传入的标识符选择相对应的.triangle()
+
+```less
+#wrap > .sjx{
+	.triangle(L,40px,red);
+	}
+.triangle(L,@w,@c){		//这里的L相当于标识符
+	border-width:@w;
+	border-color: transparent transparent transparent @c;
+	.triangle();
+	
+}
+.triangle(R,@w,@c){		
+	border-width:@w;
+	border-color: transparent @c transparent transparent;
+	.triangle();
+}
+.triangle(T,@w,@c){		
+	border-width:@w;
+	border-color: @c transparent transparent transparent;
+	.triangle();
+}
+.triangle(B,@w,@c){		
+	border-width:@w;
+	border-color: transparent transparent @c transparent;
+	.triangle();
+}
+```
+
+6.arguments
+
+```less
+.border(@1,@2,@3){
+	border:@arguments;
+}
+#wrap .sjx{
+	.border(1px,solid,black)
+}
+```
 
