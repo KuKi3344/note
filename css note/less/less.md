@@ -250,3 +250,69 @@ less中的变量都是块级作用域。
 }
 ```
 
+### 计算
+
+```
+#wrap .sjx{
+	width:(100 + 100px)
+	//在less里面计算，计算的双方只要一方带单位就行
+}
+```
+
+### less继承
+
+```less
+.juzhong{
+    position:absolute;
+	left:0;
+	right:0;
+	bottom:0;
+	top:0;
+	margin:auto;
+}
+#wrap{
+	position:relative;
+	width:300px;
+	height:300px;
+	border:1px solid;
+	margin:0 auto;
+	.inner:extend(.juzhong all){
+		&:nth-child(1){
+			width:100px;
+			height:100px;
+			background:pink;
+		}
+		&:nth-child(2){
+		width:50px;
+		height:50px;
+		background:yellow;
+		}
+	}
+}
+```
+
+编译后生成的css文件：
+
+```less
+.juzhong,
+#wrap .inner,
+#wrap .inner:nth-child(1),
+#wrap .inner:nth-child(2){
+	position:absolute;
+	left:0;
+	right:0;
+	bottom:0;
+	top:0;
+	margin:auto;
+}
+#wrap{
+	...
+}
+#wrap .inner:nth-child(1){
+	...
+}
+#wrap .inner:nth-child(2){
+	...
+}
+```
+
