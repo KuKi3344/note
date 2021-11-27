@@ -206,3 +206,62 @@ module.exports = {
 ```
 
 打包后，在index.html里，引入打包好的bundle.js文件，成功输出hello，但这样打包后要自己修改html文件里引入的js文件，那可不可以让它自己引入不用人工修改呢？
+
+### 插件plugins
+
+#### HtmlWebpackPlugin
+
+可以实现html文件的自动生成
+
+```js
+//webpack.config.js
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+module.exports = {
+	entry: './src/index.js', //入口
+	
+	output: {
+		filename:'bundle.js',//输出文件名
+		path:path.resolve(__dirname,'./dist')	//输出到的绝对路径
+		//__dirname参数表示获取到当前webpack.config.js所在的物理路径
+		//第二个参数表示基于第一个参数的路径再去找到解析到当前目录下的dist
+	},
+	mode: 'none',
+	plugins :[
+		//插件使用需要引入并实例化
+		new HtmlWebpackPlugin()
+	]
+}
+```
+
+这样在dist文件里，就会多出一个index.js文件，是插件自动生成的文件，自动引入了打包好的资源，并且运行后，可以正常输出hello。
+
+但生成的index.js和我们自己写的index.js没有关系，那么能不能让生成的依据我们之前所写的生成呢
+
+配置插件option选项
+
+将plugins里面的option改成如下
+
+```js
+//webpack.config.js
+plugins :[
+		//插件使用需要引入并实例化
+		new HtmlWebpackPlugin({
+			template: './index.html',	//模板
+			filename: 'app.html',//输出文件名
+			inject:'body' //这样打包好的js文件就会在body里引入而不是head里引入
+		})
+	]
+```
+
+#### 清理dist
+
+```js
+output: {
+		filename:'bundle.js',//输出文件名
+		path:path.resolve(__dirname,'./dist')
+		clean:true
+	},
+```
+
+只要在output里加入`clean:true`就可以实现自动清理上一次打包文件
