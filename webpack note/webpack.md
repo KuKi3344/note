@@ -213,6 +213,12 @@ module.exports = {
 
 可以实现html文件的自动生成
 
+安装：
+
+```
+npm install html-webpack-plugin -D
+```
+
 ```js
 //webpack.config.js
 const path = require('path')
@@ -265,3 +271,53 @@ output: {
 ```
 
 只要在output里加入`clean:true`就可以实现自动清理上一次打包文件
+
+### source map
+
+```js
+//在webpack.config.js中添加如下
+devtool:'inline-source-map',
+```
+
+这样会使打包好的js文件显示的是你本来写的代码，而不是看不懂的代码，具体之后会详细说
+
+### 使用watch mode观察模式
+
+```
+npx webpack --watch
+```
+
+当更改代码保存时，终端自动重新打包
+
+### webpack-dev-server
+
+`webpack-dev-server `提供了一个基本的web server，并且具有live reloading（实时重新加载）功能。当页面修改了编译之后，浏览器会侦听到我们文件的修改来实现自动刷新
+
+安装：
+
+```
+npm install webpack-dev-server -D
+```
+
+在webpack.config.js中添加
+
+```js
+devServer:{
+		static:'./dist'
+	}
+```
+
+这个目录选定的是跑在服务器上的文件目录
+
+终端输入命令:
+
+```
+npx webpack-dev-server
+```
+
+文件就跑在服务器上了，并且当你修改文件时会自动刷新
+
+![1](D:\web前端\webpack note\img\1.png)
+
+其实webpack-dev-server 真正的没有输出任何的物理文件，他把输出的打包的bundle文件输出到了内存里。当我们把dist文件夹删掉再回去看浏览器，输出并没有任何问题。再hello.js文件里修改输出内容，浏览器依旧会刷新，输出的还是最新的内容
+
