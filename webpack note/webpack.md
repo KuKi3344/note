@@ -173,6 +173,8 @@ npx webpack
 
 结果和全局安装webpack执行webpack命令一样
 
+**注意**：以下所有指令一定要cd到你的根目录执行，不然会一直报错，报错的时候一定要先看看自己有没有进到项目根目录的终端
+
 ### 自定义webpack配置
 
 ```
@@ -321,3 +323,144 @@ npx webpack-dev-server
 
 其实webpack-dev-server 真正的没有输出任何的物理文件，他把输出的打包的bundle文件输出到了内存里。当我们把dist文件夹删掉再回去看浏览器，输出并没有任何问题。再hello.js文件里修改输出内容，浏览器依旧会刷新，输出的还是最新的内容
 
+### 资源模块介绍
+
+#### Resource资源
+
+在`webpack.config.js`里的`module.exports`添加如下
+
+```js
+module:{
+		rules:[
+			{
+				test:/\.jpg$/,//正则，表示以jpg为扩展名的文件
+				type:'asset/resource'
+			}
+		]
+	}
+```
+
+index.js如下
+
+```js
+import hello from './hello.js'
+import imgsrc from './asset/viewdif.jpg'
+
+
+hello();
+const img = document.createElement('img')
+img.src = imgsrc
+document.body.appendChild(img)
+```
+
+打包后发现，页面上果然出现了图片，并且图片资源默认打包到了dist目录下，并且自动起好了文件名。那能不能自定义文件目录和文件名呢。
+
+在output里加入新属性`assetModuleFilename`, 顾名思义就是资源模块的文件名和路径
+
+```js
+	output: {
+		filename:'bundle.js',//输出文件名
+		path:path.resolve(__dirname,'./dist'),
+		clean:true,
+		assetModuleFilename:'images/test.jpg'
+	},
+```
+
+打包后，dist目录下自动生成images文件夹并且图片存在里面，为test.jpg
+
+多文件下不可能所有文件都叫test.jpg，我们让它自动生成文件名，利用系统自带的默认的生成文件名的方法。
+
+```js
+assetModuleFilename:'images/[contenthash][ext]'
+```
+
+表示根据文件内容来生成一个哈希的字符串,并且使用原资源的扩展名，用ext来表示扩展名，除了在output里配置，也可以在module的rules里配置generator：
+
+```js
+module:{
+		rules:[
+			{
+				test:/\.jpg$/,//正则，表示以jpg为扩展名的文件
+				type:'asset/resource',
+				generator:{
+					filename:'images/[contenthash][ext]'
+				},
+				//也可以自定义打包的资源的路径和文件名，但generator的优先级高于assetModuleFilename
+			}
+		]
+	}
+```
+
+#### asset inline
+
+asset inline这个资源类型用于导出一个资源的Data url
+
+```js
+//webpack.config.js
+module:{
+		rules:[
+			{
+				test:/\.jpg$/,//正则，表示以jpg为扩展名的文件
+				type:'asset/resource',
+				generator:{
+					filename:'images/[contenthash][ext]'
+				},
+				//也可以自定义打包的资源的路径和文件名，但generator的优先级高于assetModuleFilename
+			},
+			{
+				test:/\.svg$/,
+				type:'asset/inline'
+			}
+		]
+	}
+```
+
+```js
+//index.js
+import logSvg from './asset/arrow-up.svg'
+const img2 = document.createElement('img')
+img2.style.cssText = 'width:200px;height:200px'
+img2.src = logSvg
+document.body.appendChild(img2)
+```
+
+打包后，dist的里没有导出的资源，因为我们使用的是`asset-inline`
+
+在浏览器上显示正常，浏览器检查发现它不是一个图片的url，而是一个Data url。
+
+#### 通用资源类型asset
+
+在导出一个data url和发送一个单独的文件之间自动选择
+
+`asset/resource`与`asset/inline`之间进行选择
+
+在module的rules里面加入
+
+```js
+{	
+			test:/\.png$/,
+			type:'asset'
+			}
+```
+
+打开浏览器看，图片以本地文件的形式出现。
+
+默认情况下，webpack会去判断我们加载的资源大小，当这个资源文件大于8k，就会创建一个资源了，如果小于8k，就会作为inline生成一个base64的一个链接。那能不能自己调整这个临界值呢
+
+把上面的代码修改成如下
+
+```js
+{	
+				test:/\.png$/,
+				type:'asset',
+				parser:{
+					dataUrlCondition:{
+						maxSize:1 * 1024 * 1024
+					}
+				}
+			}
+```
+
+即为临界值为1M，再重新打包，发现.png扩展名的图片已经不在dist里了，在网页中，这个图片是一个base64，即Data url 的格式了
+
+详情看代码文件`04-development`
