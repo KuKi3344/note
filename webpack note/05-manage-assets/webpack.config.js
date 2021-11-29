@@ -14,7 +14,7 @@ module.exports = {
 		clean:true,
 		assetModuleFilename:'images/[contenthash][ext]'
 	},
-	mode: 'production',
+	mode: 'development',
 	devtool:'inline-source-map',
 	plugins :[
 		//插件使用需要引入并实例化
@@ -59,7 +59,20 @@ module.exports = {
 				//先写style-loader，再写css-loader是有顺序的
 				//先css-loader会打包识别css文件然后style-loader会帮助我们把css放置到页面上
 				//可以看作出栈
+			},
+			{
+				test:/\.(woff|woff2|eot|ttf|otf)$/, //	字体文件各种格式
+				type:'asset/resource'
+			},
+			{
+				test:/\.(csv|tsv)$/, //	字体文件各种格式
+				use:'csv-loader'
+			},
+			{
+				test:/\.xml$/, //	字体文件各种格式
+				use:'xml-loader',
 			}
+			
 		]
 	},
 		//优化配置

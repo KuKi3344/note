@@ -590,3 +590,135 @@ mode: 'production',
 ```
 
 css文件就被压缩了
+
+#### 加载font字体
+
+```js
+...
+{
+	test:/\.(woff|woff2|eot|ttf|otf)$/, //	字体文件各种格式
+    type:'asset/resource'
+			}
+...
+```
+
+在style.css中添加
+
+```css
+@font-face {
+	font-family:'iconfont';
+	src: url('./asset/iconfont.ttf') format('truetype');
+}
+.icon{
+	font-family: 'iconfont';
+	font-size:30px;
+}
+```
+
+在index.js中添加
+
+```js
+document.body.classList.add('hello')
+const span = document.createElement('span');
+span.classList.add('icon');
+span.innerHTML = '&#xe668';	//文字文件自带
+document.body.appendChild(span);
+```
+
+#### 加载数据
+
+**加载xml文件与csv文件**
+
+安装插件：
+
+```
+npm install csv-loader xml-loader -D
+```
+
+修改webpack.config.js
+
+```js
+{
+		test:/\.(csv|tsv)$/, //	字体文件各种格式
+		use:'csv-loader'
+	},
+{
+		test:/\.xml$/, //	字体文件各种格式
+		use:'xml-loader',
+	}
+```
+
+index.js
+
+```js
+import Data from './asset/data.xml'
+import Notes from './asset/data.csv'
+...
+
+console.log(Data);
+console.log(Notes);
+```
+
+打印后发现，data.xml会转化成一个js对象，data.csv会转化成一个数组
+
+### babel-loader
+
+将ES6转换成低版本的浏览器能够识别的ES代码
+
+将hello.js改成如下,此时用到了ES6的特性，由于担心某些浏览器不兼容ES6，所以需要把它转换成低版本的浏览器也能识别的ES代码
+
+```js
+function getString(){
+	return new Promise((resolve,reject)=>{
+		setTimeout(()=>{
+			resolve('hello word!')
+		},2000)
+	})
+}
+async function hello(){
+	let string = await getString()
+	console.log(string)
+}
+export default hello
+```
+
+安装：
+
+```
+npm install babel-loader @babel/core @babel/preset-env -D
+```
+
+`babel-loader`:在webpack里应用babel解析ES6的桥梁
+
+`@babel/core`：babel核心模块
+
+`babel/preset-env`：babel预设，一组babel插件的集合
+
+```js
+{
+		test:/\.js$/, //	字体文件各种格式
+		exclude:/node_modules/, //解析的js不包括node_modules里的js只包括本地
+		use:{
+			loader:'babel-loader',
+			options:{
+			presets:['@babel/preset-env']//用刚刚下载的预设
+					}
+				},
+			}
+```
+
+此时还需要一个插件 `regeneratorRuntime`
+
+`regeneratorRuntime`是webpack打包生成的全局辅助函数，由babel来生成用于兼容 async/await的语法
+
+```
+npm install @babel/runtime -D
+```
+
+除了这个还要安装一个插件
+
+```
+npm install @babel/plugin-transform-runtime -D
+```
+
+这个插件会在需要`regeneratorRuntime`的地方自动require导包，编译的时候需要它
