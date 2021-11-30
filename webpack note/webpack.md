@@ -661,7 +661,7 @@ console.log(Notes);
 
 打印后发现，data.xml会转化成一个js对象，data.csv会转化成一个数组
 
-### babel-loader
+#### babel-loader
 
 将ES6转换成低版本的浏览器能够识别的ES代码
 
@@ -722,3 +722,245 @@ npm install @babel/plugin-transform-runtime -D
 ```
 
 这个插件会在需要`regeneratorRuntime`的地方自动require导包，编译的时候需要它
+
+### 代码分离
+
+可以把多个模块共享的代码抽离出去，减少入口文件的大小，从而提高首屏的加载速度。
+
+**第一种方法**：
+
+新建一个js文件——another-module.js
+
+在webpack.config.js中修改入口entry与输出output
+
+```js
+entry: {
+		index:'./src/index.js', //入口
+		another:'./src/another-module.js'
+	},
+output: {
+		filename:'[name].bundle.js',//输出文件名
+		path:path.resolve(__dirname,'./dist'),
+			//输出到的绝对路径
+		//__dirname参数表示获取到当前webpack.config.js所在的物理路径
+		//第二个参数表示基于第一个参数的路径再去找到解析到当前目录下的dist
+		clean:true,
+		assetModuleFilename:'images/[contenthash][ext]'
+	},
+```
+
+结果打包出了两个js文件，一个为 `index.bundle.js`一个为`another.bundle.js`。
+
+其中`[name]`这种格式称为 substitution 可替换的模板字符串。（会用原文件的名字替换这个位置）
+
+并且dist中的`app.html`已经把我们的这两个js文件分别引入了，也就是我们实现了两个入口，并且效果显示正常。
+
+但如果使用多入口的方法，如果在两个入口js里都引入了一个外部js，他会分别的把各自引用的本来通用的包都分别打包的自己的chunk里，这也是entry配置代码分离的一个问题。如果我们在入口的chunk之间包含一些重复代码，那么这些重复模块会被引入各自的bundle中，导致文件变大（等于下了两次外部js）
+
+**第二种方法：（防止重复）**
+
+#### **静态导入**
+
+依旧在entry里做一些配置，不过可以把公共的一些文件给抽离成单独的chunk
+
+entry之前使用的是一个 `key`加上一个字符串的方法，把这个改写一下，把index设置成一个对象，在对象里面哦通过import来导入这个模块，并加上重要属性 `dependOn`,把他的值设为shared，这样可以把共享的文件给定义出来，然后再去定义第二个key another，他也是一个对象里面有import,里面也需要配置一个`dependOn`，也是shared，最后在两个配置并列的地方配置一个shared，可以起名为`lodash`，意思是当我们这两个模块里面有`lodash`这个模块的时候，就会把他抽离出来，并取名为shared的这样一个chunk
+
+```js
+entry: {
+		index:{
+			import: './src/index.js',
+			dependOn:'shared'
+		}, //入口
+		another:{
+			import:'./src/another-module.js',
+			dependOn:'shared'
+		},
+		shared:'lodash'
+	},
+```
+
+打包后我们发现，多出来一个`shared.bundle.js`，也就是把我们的lodash单独抽离出来，放到`shared.bundle.js`里了，另外两个js文件大小缩小了，并且运行到服务器上，打印出的东西没有问题
+
+还可以通过插件来实现,把入口复原，配置新的选项
+
+optimization中添加
+
+```js
+	//优化配置
+	optimization:{
+		minimizer:[
+			new CssMinimizerPlugin()
+		],
+     splitChunks:{
+         chunks:'all'
+    	}     
+	}
+}
+```
+
+也能实现防止重复的效果，lodash被单独分离出来了
+
+**第三种方法：**
+
+#### 动态导入
+
+（使用import）
+
+编写async-module.js
+
+```js
+function getComponent(){
+	//imprt函数返回的是promise//  成功之后的回调函数
+	return import('lodash')
+	.then(({default: _})=>{
+		const element = document.createElement('div')
+		element.innerHTML = _.join(['hello','webpack'],' ')
+		return element
+	})
+}
+getComponent().then((element)=>{
+	document.body.appendChild(element)
+})
+```
+
+在index.js中用import引入这个js`import './async-module.js'`
+
+发现在dist中出现了单独抽离出来的lodash文件
+
+同时optimization中添加，动态静态结合
+
+```js
+	//优化配置
+	optimization:{
+		minimizer:[
+			new CssMinimizerPlugin()
+		],
+     splitChunks:{
+         chunks:'all'
+    	}     
+	}
+}
+```
+
+就能发现所有的包都被导入到一个文件里来了
+
+#### 懒加载
+
+动态导入的第一个应用。懒加载又称为按需加载，可以优化网页。这种方式实际上是把你的代码在一些逻辑断点处分离开，然后在一些代码块中完成某些操作，比如单击按钮，他会立即引用或者即将引用一些代码块，这样会加快我们应用的初始加载速度，减轻我们的代码块的总体积，因为某些代码块可能永远不会加载
+
+写一个新的js文件——math.js
+
+```js
+//math.js
+export const add = (x,y)=>{
+	return x + y
+}
+export const minus = (x,y)=>{
+	return x - y
+}
+
+```
+
+```js
+//index.js添加
+const button = document.createElement('button')
+button.textContent = '点击执行加法运算'
+button.addEventListener('click',()=>{
+		import('./math.js').then(({ add })=>{
+			console.log(add(4,5))
+		})
+})
+document.body.appendChild(button)
+```
+
+打开浏览器network，发现加载文件里并没有打包的`src_math_js.bundle.js`文件，当我们点击按钮后，发现这个js文件才被下载下来，然后打开console发现9就被打印出来了。说明这个模块在页面第一次加载的时候并不加载，只有当我们点击按钮的时候才加载，如果用户从不点击，那这个模块就不在服务器上加载了，节省了我们网络的流量
+
+math.js打包的文件名是可以修改的
+
+```js
+//index.js修改
+const button = document.createElement('button')
+button.textContent = '点击执行加法运算'
+button.addEventListener('click',()=>{
+		import(/*webpackChunkName:'math'*/'./math.js').then(({ add })=>{
+			console.log(add(4,5))
+		})
+})
+document.body.appendChild(button)
+
+```
+
+打包后，这个包的名字就变成`math.bundle.js`（注：之所以带bundle是因为我们output里filename写的是`[name].bundle.js`）
+
+#### 预获取/预加载模块
+
+动态导入的第二个应用。我们在声明`import`的时候，可以用下面的指令，让webpack输出resource.hint （资源提示），来告诉浏览器：
+
+- prefetch（预获取）：将来某些导航下可能需要的资源
+- preload（预加载）：当前导航下可能需要资源
+
+```js
+button.addEventListener('click',()=>{
+		import(/*webpackChunkName:'math',webpackPrefetch:true*/'./math.js').then(({ add })=>{
+			console.log(add(4,5))
+		})
+})
+```
+
+在import中加入`webpackPrefetch:true`后，再次打包，来到浏览器，发现加载文件里出现`math.bundle.js`，他已经被加载下来了（预获取），当点击按钮时，又加载了一遍，输出9。他有什么意义呢？
+
+当我们首页面的内容都加载完毕，在网络空闲时再去加载我们打包好的`math.bundle.js`，这种方式比懒加载还要优秀。这就是所谓的prefetch（预获取）
+
+```js
+button.addEventListener('click',()=>{
+		import(/*webpackChunkName:'math',webpackPreload:true*/'./math.js').then(({ add })=>{
+			console.log(add(4,5))
+		})
+})
+```
+
+重新打包，启动服务，来到浏览器，刷新后发现math.bundle.js没有被下载，点击按钮后下载了。这就是preload，和懒加载效果有些类似。preload能实现模块的并行加载。
+
+### 缓存
+
+我们可以通过命中缓存来降低网络流量使网站加载速度更快。然而我们在部署新版本的时候，不更改资源文件名，浏览器可能会认为你没有更新，就会使用缓存版本。所以我们需要一些设置来确保webpack生成文件能被客户端缓存，而文件内容变化时又能请求到新文件。
+
+#### 配置输出文件文件名
+
+把webpack.config.js里面的output中的filename修改如下
+
+```js
+filename:'[name].[contenthash].js',//输出文件名
+```
+
+将bundle改为了`[contenthash]`，这样可以根据我们文件的内容来生成一个哈希的字符串，从而我们的文件名会随着文件内容变化而变化，这样就不怕缓存了。
+
+打包后，发现dist里的文件已经被冠以一个哈希的名字字符串了
+
+#### 缓存第三方库
+
+上面是缓存自己的业务代码，那么像`lodash`这样的第三方代码需不需要缓存呢？推荐做法是：把`lodash`单独提取到一个`vendor chunk`里面。这是因为它们很少像本地源代码那样频繁修改，因此我们利用客户端或者浏览器的长效缓存的机制，命中的缓存来消除请求，从而减少向服务器获取资源的次数，同时还能保证客户端的代码和服务器代码版本一致。简而言之就是把第三方代码单独打包缓存到浏览器里，这样只有我们自己的代码变化时，我们可以去更新，但我们第三方的代码可以始终使用浏览器的缓存。
+
+第三方内容是始终不变的，文件名字自然始终不变。所以把output中内容改回`filename:'[name].bundle.js'`，不再让随机生成哈希字符串改变文件名了
+
+将`optimization`中的`minimizer`的`solitChunks`中` chunks:'all'`删掉
+
+```js
+ splitChunks:{
+		         cacheGroups:{
+					 vender:{
+						test:/[\\/]node_modules[\\/]/,	//来保证正确获取到node_modules里面的这个文件夹的名字和文件
+						name:'vendors',
+						chunks:'all',	//定义对哪些chunk做处理
+					 }
+				 }
+		    	}   
+```
+
+打包后，第三方的包都被打包到了vendors.bundle.js里面了
+
+#### 将js文件放到一个文件夹
+
+再次修改output中的内容`filename:'scripts/[name].bundle.js',`并打包，可以看到images，scripts，styles都就位了，里面分别装着图片，js与css，然后app.html分别去加载这些内容
+
+![](D:\web前端\webpack note\img\3.png)
