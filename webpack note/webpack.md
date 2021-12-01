@@ -572,7 +572,7 @@ npm install css-minimizer-webpack-plugin -D
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 ```
 
-模式改为生产模式
+模式改为生产模式（开发环境中没有必要压缩）
 
 ```js
 mode: 'production',
@@ -964,3 +964,465 @@ filename:'[name].[contenthash].js',//输出文件名
 再次修改output中的内容`filename:'scripts/[name].bundle.js',`并打包，可以看到images，scripts，styles都就位了，里面分别装着图片，js与css，然后app.html分别去加载这些内容
 
 ![](D:\web前端\webpack note\img\3.png)
+
+### 拆分开发环境和生产环境配置
+
+#### 公共路径
+
+使用`publicPath`来配置，我们可以使用它来指定应用程序中所有资源的基础路径
+
+我们当前在 app.html中所有资源都是通过相对路径引入的，那可不可以根据服务器的路径来修改我们link上面的这个路径的前缀呢？
+
+这时就需要publicPath来指定
+
+```js
+	output: {
+		filename:'scripts/[name].[contenthash].js',//输出文件名
+		path:path.resolve(__dirname,'./dist'),
+			//输出到的绝对路径
+		//__dirname参数表示获取到当前webpack.config.js所在的物理路径
+		//第二个参数表示基于第一个参数的路径再去找到解析到当前目录下的dist
+		clean:true,
+		assetModuleFilename:'images/[contenthash][ext]',
+		publicPath:'http://localhost:8080/'
+	},
+```
+
+配置公共路径为`http://localhost:8080/`，此时再去看app.html里的引入文件
+
+```html
+<link href="http://localhost:8080/styles/a7fc9dac95324aeb1307.css" rel="stylesheet">
+
+<script defer src="http://localhost:8080/scripts/vendors.458acba2a531eca3e330.js">
+```
+
+在所有资源路径的前面就多了这样一个域名。这个域名可以指定为我们项目的前端域名，或者cdn服务器的域名等等都可以。
+
+#### 环境变量
+
+可以帮助我们消除webpack.config.js这个配置文件里面的开发环境与生产环境之间的差异
+
+在编译时传入参数
+
+```
+npx webpack --env production
+```
+
+但我们怎么使用这个环境变量呢？
+
+首先我们需要把module.export后面的这个对象转化成一个函数,并把env当作参数传入
+
+```js
+module.exports = (env) =>{
+	return{
+		...
+		}
+}
+```
+
+我们可以把`mode: 'development'`修改一下。
+
+比如看看用户是否有production这个配置，如果有的话设置成production，没有就用development
+
+```js
+mode: env.production ? 'production':'development'
+```
+
+打包后，发现打包成功，但是我们的js代码没有进行压缩。我们可以使用terser-webpack-plugin插件
+
+安装
+
+```
+npm install terser-webpack-plugin -D
+```
+
+引用：
+
+```js
+const TerserPlugin = require('terser-webpack-plugin')
+...
+optimization:{
+			minimizer:[
+				new CssMinimizerPlugin(),
+				new TerserPlugin()
+				
+			],
+```
+
+这是在生产环境中，当我们在终端输入
+
+```
+npx webpack --env development
+```
+
+转为开发环境，再去看scripts文件里的js文件，发现代码又不压缩了
+
+#### 拆分配置文件
+
+如果我们使用环境变量，将我们webpack这个配置里面的所有生产环境和开发环境的区别都通过这种判断的方式来进行配置，显然非常糟糕，那能不能简化这个配置呢？
+
+那就是把刚刚的配置给拆成两个配置，一个配置专门做生产环境的配置，一个专门做开发环境的配置。创建一个新的文件夹config，config下面创建一个webpack.config.dev.js，显然为开发环境做的配置。我们可以把webpack.config.js的所有内容复制过来，然后把module.exports复原，从函数改回一个扁平的对象
+
+#### 开发环境的配置
+
+entry是必要的，output关于文件名的缓存我们需要删掉了，在开发环境里没有需要做publicPath，所以也删掉，mode改为development，在生产环境需要压缩，在开发环境没有必要压缩，所以将css和js的压缩插件删掉
+
+```js
+//webpack.config.js
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+module.exports = {
+	entry: {
+		index: './src/index.js', //入口
+		another: './src/another-module.js'
+	},
+
+	output: {
+		filename: 'scripts/[name].js', //输出文件名
+		path: path.resolve(__dirname, './dist'),
+		//输出到的绝对路径
+		//__dirname参数表示获取到当前webpack.config.js所在的物理路径
+		//第二个参数表示基于第一个参数的路径再去找到解析到当前目录下的dist
+		clean: true,
+		assetModuleFilename: 'images/[contenthash][ext]',
+	},
+	mode: 'development',
+	devtool: 'inline-source-map',
+	plugins: [
+		//插件使用需要引入并实例化
+		new HtmlWebpackPlugin({
+			template: './index.html', //模板
+			filename: 'app.html', //输出文件名
+			inject: 'body' //这样打包好的js文件就会在body里引入而不是head里引入
+		}),
+		new MiniCssExtractPlugin({
+			filename: 'styles/[contenthash].css'
+		})
+	],
+	devServer: {
+		static: './dist' //该目录跑到服务器上
+	},
+	module: {
+		rules: [{
+				test: /\.jpg$/, //正则，表示以jpg为扩展名的文件
+				type: 'asset/resource',
+				generator: {
+					filename: 'images/[contenthash][ext]'
+				},
+				//也可以自定义打包的资源的路径和文件名，但generator的优先级高于assetModuleFilename
+			},
+			{
+				test: /\.svg$/,
+				type: 'asset/inline'
+			},
+			{
+				test: /\.png$/,
+				type: 'asset',
+				parser: {
+					dataUrlCondition: {
+						maxSize: 1 * 1024 * 1024
+					}
+				}
+			},
+			{
+				test: /\.(css|less)$/,
+				use: [MiniCssExtractPlugin.loader, 'css-loader', 'less-loader'],
+				//先写style-loader，再写css-loader是有顺序的
+				//先css-loader会打包识别css文件然后style-loader会帮助我们把css放置到页面上
+				//可以看作出栈
+			},
+			{
+				test: /\.(woff|woff2|eot|ttf|otf)$/, //	字体文件各种格式
+				type: 'asset/resource'
+			},
+			{
+				test: /\.(csv|tsv)$/, //	字体文件各种格式
+				use: 'csv-loader'
+			},
+			{
+				test: /\.xml$/, //	字体文件各种格式
+				use: 'xml-loader',
+			},
+			{
+				test: /\.js$/, //js
+				exclude: /node_modules/, //解析的js不包括node_modules里的js只包括本地
+				use: {
+					loader: 'babel-loader',
+					options: {
+						presets: ['@babel/preset-env'], //用刚刚下载的预设
+						plugins: [
+							[
+								'@babel/plugin-transform-runtime'
+							]
+						]
+					}
+				},
+			}
+
+		]
+	},
+		splitChunks: {	//将第三方的包打到一个文件里
+			cacheGroups: {
+				vender: {
+					test: /[\\/]node_modules[\\/]/, //来保证正确获取到node_modules里面的这个文件夹的名字和文件
+					name: 'vendors',
+					chunks: 'all', //定义对哪些chunk做处理
+				}
+			}
+		}
+	}
+}
+
+```
+
+那开发环境的配置我们怎么运行呢？
+
+```
+npx webpack -c ./config/webpack.config.dev.js
+```
+
+打包后我们发现，在config文件里多了一个dist文件夹，而外部的dist文件夹没有被替换，dist里的东西还是原来的东西，config里的东西是新打包的东西，他真正的打包位置是condig文件夹，所以我们需要把他迁移到上一层位置，替换外部的dist
+
+把webpack.config.js里的output里的path改成如下
+
+`path: path.resolve(__dirname, '../dist')`
+
+再次打包就到上一层的dist里了
+
+#### 生产环境的配置
+
+在config里创造一个新文件webpack.config.prod.js
+
+把webpack.config.js复制过来，然后把module.exports复原，从函数改回一个扁平的对象，output里的filename不用变因为需要缓存文件，publicPath也需要，把path改成`../dist`来存储到上一层的dist文件，mode要改成生产环境，在生产环境里是不需要devtool的，dev server也是不需要的，压缩css和js的插件配置optimization优化是需要的。
+
+重新打包`npx webpack -c ./config/webpack.config.prod.js`
+
+再去打开dist文件夹，就看到js、css文件名的哈希值出来了，css、js代码也压缩了。我们就通过两个配置文件分离了生产环境和开发环境的配置
+
+用指定模式开启服务器
+
+```
+npx webpack serve -c ./config/webpack.config.dev.js
+```
+
+#### npm脚本
+
+每次打包都要在终端输入命令，那么我们有没有什么办法简化一下呢？
+
+在当前文件夹根目录下创建一个package.json文件，写入脚本
+
+```json
+{
+	"scripts" :{
+		"start":"npx webpack serve -c ./config/webpack.config.dev.js",
+		"build":"npx webpack -c ./config/webpack.config.prod.js"
+	}
+}
+```
+
+这样的话我们就可以运行这一串命令了，输入`npm run start`
+
+就可以看到服务成功启动起来了
+
+把scripts复制，打开最外层的package.json文件，把它的scripts替换掉，然后可以把当前的package.json先删掉。然后把外层的package.json,package-lock.json,node_modules复制到我们项目文件下。复制后，项目文件中就有自己的一些配置文件和模块了。
+
+在终端中输入`npm run build`,项目被成功打包了
+
+#### 提取公共配置
+
+我们已经把生产环境和开发环境配置到了不同的文件里，但这两个文件有大量的重复代码，我们能不能把这些重复代码单独配置到一个文件里呢？
+
+在`config`文件里新建一个`webpack.config.common.js`，把`webpack.config.js`内容复制过来，把`module.exports`从函数改成一个对象。
+
+output这一块，filename生产环境和开发环境不一样，所以删掉，`publicPath`删掉，`mode`删掉，`devtool`删掉，`devserver`删掉，下面optimization的压缩部分的代码也删掉，保留通用代码
+
+```js
+//webpack.config.common.js
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+module.exports = {
+		entry: {
+			index:'./src/index.js', //入口
+			another:'./src/another-module.js'
+		},
+		
+		output: {
+			filename:'scripts/[name].[contenthash].js',//输出文件名
+			path:path.resolve(__dirname,'../dist'),
+				//输出到的绝对路径
+			//__dirname参数表示获取到当前webpack.config.js所在的物理路径
+			//第二个参数表示基于第一个参数的路径再去找到解析到当前目录下的dist
+			clean:true,
+			assetModuleFilename:'images/[contenthash][ext]',
+			publicPath:'http://localhost:8080/'
+		},
+		devtool:'inline-source-map',
+		plugins :[
+			//插件使用需要引入并实例化
+			new HtmlWebpackPlugin({
+				template: './index.html',	//模板
+				filename: 'app.html',//输出文件名
+				inject:'body' //这样打包好的js文件就会在body里引入而不是head里引入
+			}),
+			new MiniCssExtractPlugin({
+				filename:'styles/[contenthash].css'
+		})
+		],
+		devServer:{
+			static:'./dist' //该目录跑到服务器上
+		},
+		module:{
+			rules:[
+				{
+					test:/\.jpg$/,//正则，表示以jpg为扩展名的文件
+					type:'asset/resource',
+					generator:{
+						filename:'images/[contenthash][ext]'
+					},
+					//也可以自定义打包的资源的路径和文件名，但generator的优先级高于assetModuleFilename
+				},
+				{
+					test:/\.svg$/,
+					type:'asset/inline'
+				},
+				{	
+					test:/\.png$/,
+					type:'asset',
+					parser:{
+						dataUrlCondition:{
+							maxSize:1 * 1024 * 1024
+						}
+					}
+				},
+				{
+					test:/\.(css|less)$/,
+					use:[MiniCssExtractPlugin.loader,'css-loader','less-loader'],
+					//先写style-loader，再写css-loader是有顺序的
+					//先css-loader会打包识别css文件然后style-loader会帮助我们把css放置到页面上
+					//可以看作出栈
+				},
+				{
+					test:/\.(woff|woff2|eot|ttf|otf)$/, //	字体文件各种格式
+					type:'asset/resource'
+				},
+				{
+					test:/\.(csv|tsv)$/, //	字体文件各种格式
+					use:'csv-loader'
+				},
+				{
+					test:/\.xml$/, //	字体文件各种格式
+					use:'xml-loader',
+				},
+				{
+					test:/\.js$/, //js
+					exclude:/node_modules/, //解析的js不包括node_modules里的js只包括本地
+					use:{
+						loader:'babel-loader',
+						options:{
+							presets:['@babel/preset-env'],//用刚刚下载的预设
+							plugins:[
+								[
+									'@babel/plugin-transform-runtime'
+								]
+							]
+						}
+					},
+				}
+				
+			]
+		},
+			//优化配置
+		optimization:{
+			  splitChunks:{
+			         cacheGroups:{
+						 vender:{
+							test:/[\\/]node_modules[\\/]/,	//来保证正确获取到node_modules里面的这个文件夹的名字和文件
+							name:'vendors',
+							chunks:'all',	//定义对哪些chunk做处理
+						 }
+					 }
+			    	}   
+		}
+}
+```
+
+
+
+接下来去`webpack.config.dev.js`里把common文件里有的删掉（相同的删掉），留下自己私有的
+
+```js
+//webpack.config.dev.js
+module.exports = {
+
+	output: {
+		filename: 'scripts/[name].js', //输出文件名
+	},
+	mode: 'development',
+	devtool: 'inline-source-map',	
+	devServer: {
+		static: './dist' //该目录跑到服务器上
+	}
+	}
+
+```
+
+`webpack.config.prod.js`同样进行删去相同项
+
+```js
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
+module.exports = {
+	output: {
+		filename: 'scripts/[name].[contenthash].js', //输出文件名
+		publicPath: 'http://localhost:8080/'
+	},
+	mode: 'production',
+	//优化配置
+	optimization: {
+		minimizer: [
+			new CssMinimizerPlugin(),
+			new TerserPlugin()
+
+		],
+	}
+}
+
+```
+
+接下来进行三个文件的一个合并
+
+我们使用`webpack-merge`来实现这个功能
+
+全局安装webpack-merge`npm install webpack-merge -D`
+
+在config文件夹里 新建一个webpack.config.js文件，来担当我们外部的webpack.config.js的重任，来帮我们把这三个文件merge到一起。先定义一个常量
+
+```js
+const { merge }= require('webpack-merge')
+
+const commonConfig = require('./webpack.config.common.js')
+const productionConfig = require('./webpack.config.prod.js')
+const developmentConfig = require('./webpack.config.dev.js')
+
+module.exports = (env) =>{
+	switch(true){
+		case env.development:
+			return merge(commonConfig,developmentConfig)
+		case env.production:
+			return merge(commonConfig,productionConfig)
+			default:
+				return new Error('NO matching configuration was found')
+	}
+}
+```
+
+我们用到了env环境变量，需要传入参数，所以打开package.json，需要修改一下脚本
+
+```json
+		"start": "webpack serve -c ./config/webpack.config.js --env development",
+		"build": "webpack -c ./config/webpack.config.js --env development"
+```
+
+这样在执行`npm start`/`npm run build`时就会传入env来判定此时的mode（为development），来选择相应配置了,若想改为production，只需要改脚本就可以了。
