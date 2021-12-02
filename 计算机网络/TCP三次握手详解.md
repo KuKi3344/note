@@ -2,7 +2,10 @@
 
 TCP是属于传输层。
 
-所谓三次握手(Three-way Handshake)，是指建立一个TCP连接时，需要客户端和服务器总共发送3个包。
+所谓三次握手(Three-way Handshake)，是指建立一个TCP连接时，需要客户端和服务器总共发送3个报文（一次握手）。
+
+**注：**三次握手的意思是一次握手过程中交换了三个报文，而不是进行了三次握手
+
  三次握手的目的是连接服务器指定端口，建立TCP连接,并同步连接双方的序列号和确认号并交换 TCP 窗口大小信息.在socket编程中，客户端执行connect()时。将触发三次握手。
 
 ![](https://img-blog.csdn.net/2018080715121168?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2p1bjIwMTY0MjU=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
@@ -15,25 +18,25 @@ TCP三次握手如图：
 
 ![](https://img-blog.csdn.net/20180808105159546?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2p1bjIwMTY0MjU=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 
-### 第一次握手
+### 第一报文段
 
 客户端给服务器发送一个SYN字段（在TCP标头中SYN位字段为1的TCP/IP数据包），该段中也包含客户端的初始序列号（Sequence number = J）
 
 > SYN是同步的缩写，SYN 段是发送到另一台计算机的 TCP 数据包，请求在它们之间建立连接
 
-### 第二次握手
+### 第二报文段
 
 服务器返回客户端SYN+ACK段（在TCP标头中SYN和ACK位字段都为1的TCP/IP数据包），该段中包含服务器的初始序列号（Sequence number = K）；同时使Acknowledgment number = J + 1来表示确认已收到客户端的SYN段（Sequence number = J)
 
 >Ack是“确认”的缩写。Ack数据包是任何确认收到一条消息或一系列数据包的TCP数据包
 
-### 第三次握手
+### 第三报文段
 
 客户端给服务器响应一个ACK段（在TCP标头中ACK位字段为1的TCP/IP数据包），该段中使Acknowledgment
 
  = K + 1来表示确认已收到服务器的SYN段（Sequence number = K）
 
-### 三次握手详情解析![](https://img-blog.csdn.net/20180809183055554?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2p1bjIwMTY0MjU=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+### 三次报文段握手详情解析![](https://img-blog.csdn.net/20180809183055554?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2p1bjIwMTY0MjU=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 
 ## TCP的四次挥手
 
