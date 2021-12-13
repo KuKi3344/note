@@ -4,16 +4,9 @@
 
 #### vue基本语法
 
-![1](D:\web前端\vue2.0 note\1.png)![2](D:\web前端\vue2.0 note\2.png)
-
-![3](D:\web前端\vue2.0 note\3.png)
-
-![4](D:\web前端\vue2.0 note\4.png)![5](D:\web前端\vue2.0 note\5.png)
-
-![6](D:\web前端\vue2.0 note\6.png)
 v-bind单向绑定
 v-model双向绑定
-v-bind对象改变值，被绑定到这个对象的属性不变
+v-bind对象改变值，被绑定到这个对象的属性不变，当输出绑定的东西，如果在“”内，无法直接使用{{}}来引用，只能用v-bind
 v-model的对象改变值，被绑定到这个对象的属性同时改变
 
 例如绑定了str的input通过输入改变值
