@@ -21,9 +21,9 @@
 				},
 				methods:{
 					mymethod:function(){				
-						return vm.datalist.filter(item=>item.includes(vm.keyword.replace(/\s*/g,"")));
+						return this.datalist.filter(item=>item.includes(this.keyword.replace(/\s*/g,"")));
 					},
-				}
+				},
 			})
 		</script>
 	</body>
