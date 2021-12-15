@@ -1,6 +1,6 @@
 # Vue源码解析
 
-### Vue数据代理
+### 数据代理
 
 通过vm对象来代理data对象中所有属性的操作
 
@@ -83,5 +83,52 @@ enumerable：可枚举（可遍历）
 
 **注意：**`console.log(vm._data.name)`不会触发get方法（不需要代理），`console.log(vm.name)`会触发
 
+### 模板解析
 
 
+
+#### 大括号表达式
+
+从new一个MVVM开始进入到MVVM的构造函数，首先是存储数据再变量中，然后对指定属性实现代理，紧接着就是创建一个用来编译模板的compile对象来实现模板解析。
+
+进入Compile构造函数中，先保存el元素然后取出它的所有子节点封装在一个fragment对象中，编译fragment中所有层次子节点
+
+![11](img/11.png)
+
+重点是init()初始化，里面调用了compileElement函数并传入了fragment对象（即为el）
+
+**核心源码**
+
+![5](img/5.png)
+
+先取出el中最外层所有子节点，遍历所有子节点，得到节点的文本内容。定义一个正则表达式去匹配大括号。判断该节点是不是文本节点并利用正则检验是不是大括号表达式，如果是的话就进入compileText函数，如果不符合这个条件但是有子节点且子节点长度不为零，就传入此时的node继续判断子节点符合不符合（递归）
+
+compileText函数传入的参数中的`RegExp.$1`，为正则表达式中匹配到的小括号中的内容（大括号中的表达式），把它取出来，比如{{name}}，`RegExp.$1`取到的就是name。在complieText函数中嵌套了complieUtil.text()函数
+
+![6](img/6.png)
+
+complieUtil.text中利用bind绑定text指令![7](img/7.png)
+
+compileUtil中包含许多指令的对应方法，但都是向bind中传入自己的参数与指令名称。为什么要传入指令名称呢？
+
+进入bind，他调用的`updater`如下
+
+![9](img/9.png)
+
+当传入的value类型为未定义，那么value设为空，否则设置为value
+
+那么bind是怎么根据不同指令调用这些方法呢？
+
+![8](img/8.png)
+
+这些bind里调用的相应的函数中的名字组成都是各自的指令名字加Updater组成，（例如：testUpdater），bind中的传入dir为compileUtil中传入的指令名称（指令不同传入不同的指令名称），所以当传入text时，就会定义一个updaterFn来接收updater中的textUpdater函数。然后通过判断调用是否存在来决定调用updaterFn并传入参数，借此来操控节点属性。
+
+回到bind函数中，得到对应的更新节点函数后，<font color=green>`updaterFn && updaterFn(node,this._getVMVal(vm,exp))`</font>，意思是如果存在调用来更新节点的话，就调用updaterFn并且传入相应的参数来更新节点，如果不存在的话右边的也不执行。这是一种简洁的写法，左边存在右边就执行，左边不存在右边就不执行。这就是上面说的通过判断决定调用。
+
+`this._getVMVal(vm,exp)`函数取到vm的data中对应的值并返回，通过updaterFn将节点的textcontent值改为返回的val值（也就是vm的data中对应的值）
+
+**注：**写成这样是为了严谨性（比如去查找a.b.c这样的属性值，如果直接vm[exp]就不对了，取不出来数据了，vm中没有a.b.c这个属性名，必须先根据a取出个值,再从这个值里再取b，得到之后再在这个值里选c，所以需要一个遍历的过程，一个从一个里面取）
+
+![10](img/10.png)
+
+到此为止，大括号解析式解析完成
