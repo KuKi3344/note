@@ -83,9 +83,18 @@ enumerable：可枚举（可遍历）
 
 **注意：**`console.log(vm._data.name)`不会触发get方法（不需要代理），`console.log(vm.name)`会触发
 
-### 模板解析
+### **模板解析**
 
+**基本流程**
 
+- 将el的所有子节点取出，添加到一个新建的文档fragment对象中
+- 对fragment中的所有层次子节点递归进行编译解析处理
+  - 对大括号表达式文本节点进行解析
+  - 对元素节点的指令属性进行解析
+    - 时间指令解析
+    - 一般指令解析
+
+- 将解析后的fragment添加到el中显示
 
 #### 大括号表达式
 
@@ -132,3 +141,23 @@ compileUtil中包含许多指令的对应方法，但都是向bind中传入自�
 ![10](img/10.png)
 
 到此为止，大括号解析式解析完成
+
+##### 总体流程总结
+
+- 根据正则对象得到匹配出的表达式字符串：子匹配/`RegExp.$1`
+- 从data中取出表达式对应的属性值
+- 将属性值设置为文本节点的`textContent`
+
+#### 事件指令解析
+
+![12](img/12.png)
+
+如果是大括号表达式的文本节点就进入大括号表达式的解析函数，如果是编译元素节点的指令属性，就进入compile中，编译指令。
+
+![13](img/13.png)
+
+node.attributes获得所有节点的集合，并且遍历得到属性名，通过判断是否为指令（通过判断名字前面有没有`v-`），如果是的话就取出attr.value，赋予给exp（为绑定的函数名show）。通过`attrName.substring(2)`，获取到指令名`on:click`赋予给dir，
+
+通过`isEventDirective(dir)`来判断是否dir以on开头，然后解析事件指令，进入到`compileUtil`中的`eventHandler`函数中进行事件处理，传入参数为当前节点，vm对象，以及绑定的函数名exp，和指令名dir![14](img/14.png)
+
+获取dir中的冒号后的事件名/类型：click，如果vm中存在方法就去找到vm中方法中名为exp（即为绑定的函数名）的函数show()，并赋给fn。如果eventType与fn都存在（即为存在事件类型（click）且有绑定的函数方法（show）），进入到`addEventListener`
