@@ -150,14 +150,81 @@ compileUtil中包含许多指令的对应方法，但都是向bind中传入自�
 
 #### 事件指令解析
 
+**`v-on`指令**
+
 ![12](img/12.png)
 
 如果是大括号表达式的文本节点就进入大括号表达式的解析函数，如果是编译元素节点的指令属性，就进入compile中，编译指令。
 
 ![13](img/13.png)
 
-node.attributes获得所有节点的集合，并且遍历得到属性名，通过判断是否为指令（通过判断名字前面有没有`v-`），如果是的话就取出attr.value，赋予给exp（为绑定的函数名show）。通过`attrName.substring(2)`，获取到指令名`on:click`赋予给dir，
+node.attributes获得所有节点的集合，并且遍历得到属性名`v-on:click`赋值给attrName，通过判断是否为指令（通过判断名字前面有没有`v-`），如果是的话就取出attr.value，赋予给exp（为绑定的函数名test）。通过`attrName.substring(2)`，获取到指令名`on:click`赋予给dir，
 
 通过`isEventDirective(dir)`来判断是否dir以on开头，然后解析事件指令，进入到`compileUtil`中的`eventHandler`函数中进行事件处理，传入参数为当前节点，vm对象，以及绑定的函数名exp，和指令名dir![14](img/14.png)
 
-获取dir中的冒号后的事件名/类型：click，如果vm中存在方法就去找到vm中方法中名为exp（即为绑定的函数名）的函数show()，并赋给fn。如果eventType与fn都存在（即为存在事件类型（click）且有绑定的函数方法（show）），进入到`addEventListener`
+获取dir中的冒号后的事件名/类型：click，赋值给eventType，如果vm中存在方法就去找到vm中方法中名为exp（即为绑定的函数名）的函数test()，并赋给fn。如果eventType与fn都存在（即为存在事件类型（click）且有绑定的函数方法（show）），则绑定事件监听，将click绑定到fn事件上，并改变fn的this指向指为vm。
+
+回到compile函数，`node.removeAttribute(attrName)`移除指令属性(移除`v-on:click`)
+
+##### 总体流程总结
+
+- 从指令名中取出事件名
+- 根据指令的值（表达式）从methods中得到对应的事件处理函数对象
+- 给当前元素节点绑定指定事件名和回调函数的dom事件监听
+- 指令解析完后，移除此指令属性
+
+#### 一般指令解析
+
+`v-text`,`v-html`,`v-class`
+
+```html
+<p v-text="msg"></p>
+<p v-html="msg"></p>
+<p v-class = "myclass">myclass</p>
+```
+
+##### v-text
+
+循环解析标签属性节点
+
+![15](img/15.png)
+
+以text为例，先得到attrName为`v-text`，得到text的值为vm中的msg，获取指令名dir为text，如果是普通指令，如果`compileUtil[dir]`这个函数存在的话，就进入到`compileUtil[dir]`中，在这里是指compileUtil中的text函数，并传入当前节点，vm，exp（v-test绑定的值msg）
+
+![7](img/7.png)
+
+进入到bind方法，和之前一样，通过传入的指令名称，来组成即将调用的函数名，和大括号表达式的过程同理
+
+![8](img/8.png)
+
+当传入text时，就会定义一个updaterFn来接收updater中的textUpdater函数。然后通过判断调用是否存在来决定调用updaterFn并传入参数，借此来操控节点属性。
+
+回到bind函数中，得到对应的更新节点函数后，<font color=green>`updaterFn && updaterFn(node,this._getVMVal(vm,exp))`</font>，意思是如果存在调用来更新节点的话，就调用updaterFn并且传入相应的参数来更新节点，如果不存在的话右边的也不执行。这是一种简洁的写法，左边存在右边就执行，左边不存在右边就不执行。这就是上面说的通过判断决定调用。
+
+`this._getVMVal(vm,exp)`函数取到vm的data中对应的（msg）的值并返回，并传入updater的textUpdater函数中
+
+![9](img/9.png)
+
+进入到updaterFn（即为`updater中的textUpdater`），如果存在value(vm中对应值)就把刚刚取到的value插入到节点的文本内容中，否则为插入为空
+
+`v-text`与大括号表达式其实原理是一样的，都是调用了text指令对应的函数，区别是一个是通过正则获取节点的文本内容中大括号中的文本，也就是获取exp（vm中对应内容），一个是解析节点，获取节点的value来获取vm中的对应内容exp，并且因为指令格式都为`v-xxx`，所以可以通过节点的name调用substring（2）方法来获取v-后面的指令名，来调用不同指令方法，最后移除指令属性。
+
+##### v-html
+
+`v-html`也是同理，也是这个过程，区别是通过bind函数调用了updater中的`htmlUpdater`，然后在该节点插入html代码，同样通过`this._getVMVal(vm,exp)`获取到vm中对应属性的value，然后通过通过`node.innerHTML`=value插入节点中。
+
+##### v-class
+
+`v-class`也同样，中间过程相同，最后通过bind函数调用了updater中的`classUpdater`。更新节点的className属性
+
+##### 总结
+
+- 得到指令名和指令值（表达式）  text/html/class   msg/myClass
+- 从data中根据表达式得到对应的值
+- 根据指令名确定需要操作元素节点的什么属性
+  - v-text——textContent属性
+  - v-html——innerHTML属性
+  - v-class——className属性
+
+- 将得到的表达式的值设置到对应的属性上
+- 移除元素的指令属性

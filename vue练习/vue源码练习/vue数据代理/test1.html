@@ -6,7 +6,9 @@
 	</head>
 	<body>
 		<div id="container">
-			<p>{{name}}</p>
+			<p v-text="msg"></p>
+			<p v-html="msg"></p>
+			<p v-class = "myclass"></p>
 			<button v-on:click = "show">提示</button>
 			</div>
 		<script src="../mvvm/compile.js"></script>
