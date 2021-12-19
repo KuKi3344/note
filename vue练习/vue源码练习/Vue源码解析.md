@@ -180,7 +180,6 @@ node.attributes获得所有节点的集合，并且遍历得到属性名`v-on:cl
 ```html
 <p v-text="msg"></p>
 <p v-html="msg"></p>
-<p v-class = "myclass">myclass</p>
 ```
 
 ##### v-text
@@ -213,18 +212,41 @@ node.attributes获得所有节点的集合，并且遍历得到属性名`v-on:cl
 
 `v-html`也是同理，也是这个过程，区别是通过bind函数调用了updater中的`htmlUpdater`，然后在该节点插入html代码，同样通过`this._getVMVal(vm,exp)`获取到vm中对应属性的value，然后通过通过`node.innerHTML`=value插入节点中。
 
-##### v-class
-
-`v-class`也同样，中间过程相同，最后通过bind函数调用了updater中的`classUpdater`。更新节点的className属性
-
 ##### 总结
 
-- 得到指令名和指令值（表达式）  text/html/class   msg/myClass
+- 得到指令名和指令值（表达式）  text/html   msg
 - 从data中根据表达式得到对应的值
 - 根据指令名确定需要操作元素节点的什么属性
   - v-text——textContent属性
   - v-html——innerHTML属性
-  - v-class——className属性
 
 - 将得到的表达式的值设置到对应的属性上
 - 移除元素的指令属性
+
+#### 数据绑定
+
+一旦更新了data中的某个属性数据，所有界面上直接使用或间接使用了此属性的节点都会更新
+
+##### 数据劫持
+
+数据劫持是vue中用来实现数据绑定的一种技术
+
+**基本思想**：通过defineProperty()来监视data中所有属性（任意层次）数据的变化，一旦变化就去更新界面
+
+![17](img/17.png)
+
+核心实现：通过observe对data进行监视
+
+![18](img/18.png)
+
+new一个观察者，监视value值。![19](img/19.png)
+
+保存当前data， 进入到walk()，遍历data中所有属性后，每个属性进行处 理，进入convert函数
+
+![20](img/20.png)
+
+再从convert跳入到defineReactive![ ](img/21.png)
+
+更新界面利用的是bind里的监听器Watcher()，监听exp的变化，当exp有变化的时候，调用updater![22](img/22.png)
+
+ 

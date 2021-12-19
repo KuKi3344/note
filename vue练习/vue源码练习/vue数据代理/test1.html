@@ -6,10 +6,8 @@
 	</head>
 	<body>
 		<div id="container">
-			<p v-text="msg"></p>
-			<p v-html="msg"></p>
-			<p v-class = "myclass"></p>
-			<button v-on:click = "show">提示</button>
+			<p>{{name}}</p>
+			<button v-on:click="update">更新</button>
 			</div>
 		<script src="../mvvm/compile.js"></script>
 		<script src="../mvvm/mvvm.js"></script>
@@ -22,13 +20,12 @@
 				name:'lulu'
 			},
 			methods:{
-				show(){
-					alert('1');
+				update(){
+					this.name = 'minmin';
 				}
 			}
 		})
 		console.log(vm._data.name,vm);
-		vm.name = 'minmin';
 		console.log(vm.name);
 		</script>
 	</body>

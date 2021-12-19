@@ -963,7 +963,7 @@ filename:'[name].[contenthash].js',//输出文件名
 
 再次修改output中的内容`filename:'scripts/[name].bundle.js',`并打包，可以看到images，scripts，styles都就位了，里面分别装着图片，js与css，然后app.html分别去加载这些内容
 
-![](D:\web前端\webpack note\img\3.png)
+![](img\3.png)
 
 ### 拆分开发环境和生产环境配置
 
