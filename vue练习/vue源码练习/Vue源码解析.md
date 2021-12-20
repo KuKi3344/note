@@ -1,4 +1,4 @@
-# Vue源码解析
+#  Vue源码解析
 
 ### 数据代理
 
@@ -12,7 +12,7 @@
 
 **源码实现：**
 
-先创建vue的实例对象vm，然后在data中添加name，打印`vm.name`与`vm`
+先创建vue的实例对象vm，然后在data中添 加name，打印`vm.name`与`vm`
 
 ```js
 		var vm = new Vue({
@@ -226,6 +226,12 @@ node.attributes获得所有节点的集合，并且遍历得到属性名`v-on:cl
 #### 数据绑定
 
 一旦更新了data中的某个属性数据，所有界面上直接使用或间接使用了此属性的节点都会更新
+
+**基本原理：**给data中的属性（xxx），提供get和set（重点是set），监视这个值的变化。当输入`this.xxx = xxx（vm.xxx=xxx）`时，改变了vm的xxx的值，触发了vm 的set，vm的set会改变data里xxx的值，就会触发data的set，之后就会更新界面。
+
+**简而言之就是**给data中的所有属性提供set方法，监视data中属性的变化，若有变化就更新界面
+
+vm里的set和data的set作用是不太一样的，vm的set用来数据代理，data里的set用来实现数据绑定。
 
 ##### 数据劫持
 
