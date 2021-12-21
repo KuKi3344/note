@@ -253,6 +253,110 @@ new一个观察者，监视value值。![19](img/19.png)
 
 再从convert跳入到defineReactive![ ](img/21.png)
 
-更新界面利用的是bind里的监听器Watcher()，监听exp的变化，当exp有变化的时候，调用updater![22](img/22.png)
+更新界面利用的是bind里的监听器Watcher()，监听exp的变化，当exp有变化的时候，调用updater。![22](img/22.png)
 
- 
+ 进入watcher看里面的工作
+
+![23](img/23.png)
+
+cb为callback，意为回调函数，保存一下vm和表达式，触发get方法取取值给value，此时这个get就涉及了Dep了。
+
+**Dep是什么？**
+
+![24](img/24.png)
+
+它自身有一个id，每次创建一个id加1，说明这个id是这个Dep的标识属性（id从零开始）
+
+sub是`subscriber`的意思，意为订阅者,那Dep里的subs就意为多个订阅者的数组，也就是里面每一个都放着`watcher`监视器
+
+**Dep实例什么时候创建？创建个数？**
+
+- 初始化的给data的属性进行数据劫持时创建的
+- 个数与data中的属性一一对应
+
+所有层次的属性都会进行劫持，要想劫持就要调用defineReactive方法，调用这个方法就会new一个Dep，**例如：**
+
+```json
+data:{
+	name:'feifei',	//id:0
+	wife:{			//id:1
+		name:'lulu', //id:2
+		age:28		//id:3
+	}
+}
+```
+
+如上数据，就会new 四个Dep实例
+
+**Dep的结构？**
+
+```js
+function Dep() {
+    // 标识属性
+    this.id = uid++;
+    // 相关的所有watcher的数组
+    this.subs = [];
+}
+```
+
+- id：标识（数值）
+- subs（数组）：n个相关的watcher对象的容器
+
+**Watcher的实例何时创建？创建个数？**
+
+- 在初始化的解析大括号表达式/一般指令时创建
+- 个数与模板中表达式（不包含事件指令）一一对应
+
+**Watcher的结构？**
+
+```js
+function Watcher(vm, exp, cb) {
+  this.cb = cb;  // callback
+  this.vm = vm;
+  this.exp = exp;
+  this.depIds = {};  // {0: d0, 1: d1, 2: d2}
+  this.value = this.get();
+}
+```
+
+`this.cb = cb;`	:	用于更新界面的回调
+`this.vm = vm;`	:	vm
+`this.exp = exp;`	:	对应的表达式
+`this.depIds = {};`	:	n个相关的dep的容器对象
+`this.value = this.get();`	:	当前表达式对应的value
+
+**整体大致过程：**
+
+`vm.name = 'abc'`
+
+ `—>data中的name属性值变化`
+
+`—>name的set()调用`
+
+`—>通知对应dep`
+
+`—>通知所有相关watcher`
+
+`—>cb()`//回调函数，为了去更新界面，调用了updater
+
+`—>updater`
+
+**Dep与Watcher之间的关系是什么？如何建立的？**
+
+ **多对多关系**（n对n）
+
+`一个name属性`—>`一个Dep`—>`n个Watcher（n=1,2.....n）`
+
+==什么时候n大于1?==
+
+模板中有多个表达式用了此属性（`{{name}}、v-text="name"`）
+
+`表达式`—>`Watcher`—>`n个Dep（）`
+
+==什么时候n大于1?==
+
+在多层表达式中
+
+例如`{{a.b}}`，它为一个表达式所以对应一个Watcher，但是包含了两个属性（a，b）就对应了两个Dep
+
+![25](img/25.png)
