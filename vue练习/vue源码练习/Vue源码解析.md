@@ -1,4 +1,4 @@
-#  Vue源码解析
+#   Vue源码解析
 
 ### 数据代理
 
@@ -359,4 +359,33 @@ function Watcher(vm, exp, cb) {
 
 例如`{{a.b}}`，它为一个表达式所以对应一个Watcher，但是包含了两个属性（a，b）就对应了两个Dep
 
+**如何建立的？**
+
+Dep与Watcher间，Dep先建立。（先`observe(data,this),再this.$compile`）。`observe(data，this)`对data中所有层次的属性通过数据劫持实现数据绑定，创建Dep。
+
+关系实在data中属性的get()中建立 
+
+对应关系举例如下：
+
+```html
+<div id="test">
+    <p>{{name}}</p>		<!--watcher1--d0-->
+    <p v-text="name"></p>	<!--watcher2--d0-->
+    <p v-text = "wife.name"></p>	<!--watcher3--{d1,d2}-->
+    <!--d0--[watcher1.watcher2]-->
+    <button v-on:click="update"></button>
+</div>
+```
+
+**图解**
+
 ![25](img/25.png)
+
+new MVVM()过程中创建两个实例，一个是observer一个是Compile。observer用来实现对数据的劫持或监视，这里面依赖于Dep，要创建对应的Dep。在初始化的时候是没有通知变化的那根线的。Complie有两个事情，一个是初始化视图（解析指令属性/大括号表达式），一个是创建对应的Watcher，创建Watcher是为了后面来更新视图，创建watcher内部需要去建立Dep与Watcher之间的关系，将Watcher添加到对应的Dep里面。
+**一个Watcher一定会对应一个Dep吗？**
+
+不一定。要看属性，比如a.b.c，一个属性一个Dep，就是三个Dep。
+
+
+
+更新vm的数据（一个属性）实则导致data的属性变化了，data属性有set监视，里面就会通知的对应的Dep(只会通知1个Dep，因为只有一个属性，但会可能关联N个Watcher)
