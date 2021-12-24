@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+		<div id="container">
+			<input type="text" v-model="name">
+			<p>{{name}}</p>
+			</div>
+		<script src="./mvvm/compile.js"></script>
+		<script src="./mvvm/mvvm.js"></script>
+		<script src="./mvvm/observer.js"></script>
+		<script src="./mvvm/watcher.js"></script>
+		<script>
+		var vm = new MVVM({
+			el:'#container',
+			data:{
+				name:'lulu'
+			},
+		})
+		console.log(vm._data.name,vm);
+		console.log(vm.name);
+		</script>
+	</body>
+</html>
