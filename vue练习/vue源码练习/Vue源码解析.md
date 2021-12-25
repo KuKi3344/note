@@ -448,3 +448,84 @@ new MVVM()过程中创建两个实例，一个是observer一个是Compile。obse
   children:[]       // 子元素
 }
 ```
+
+我们把组成一个`DOM`节点的必要东西通过一个`JS`对象表示出来，那么这个`JS`对象就可以用来描述这个`DOM`节点，我们把这个`JS`对象就称为是这个真实`DOM`节点的虚拟`DOM`节点。
+
+**为什么要有虚拟DOM？**
+
+Vue是数据驱动视图的，数据发生变化视图就要随之更新，在更新视图的时候难免要操作DOM，而操作真实DOM又是非常耗费性能的，因为DOM设计的十分复杂，一个真正的DOM元素是非常庞大的，如下
+
+![](https://vue-js.com/learn-vue/assets/img/1.a052465d.png)
+
+一个空的div标签，就能打印出这么多东西，而不用说更复杂的DOM节点了，所以直接操作真是DOM是非常消耗性能的。
+
+那如何在更新视图的时候尽可能少的操作`DOM`呢？最直观的思路就是我们不要盲目的去更新视图，而是通过对比数据变化前后的状态，计算出视图中哪些地方需要更新，只更新需要更新的地方，而不需要更新的地方则不需关心，这样我们就可以尽可能少的操作`DOM`了。
+
+我们可以用`JS`模拟出一个`DOM`节点，称之为虚拟`DOM`节点。当数据发生变化时，我们对比变化前后的虚拟`DOM`节点，通过`DOM-Diff`算法计算出需要更新的地方，然后去更新需要更新的视图。
+
+### Vue中的虚拟DOM
+
+#### VNode类
+
+在Vue中存在了一个VNode类，通过这个类，我们就可以实例化出不同类型的虚拟DOM节点
+
+```js
+function VNode(
+    tag, data, children, 
+    text, elm, context, 
+    componentOptions
+
+) {    
+
+    this.tag = tag; // 标签名
+
+    this.data = data;    
+
+    this.children = children; // 子元素
+
+    this.text = text; // 文本内容
+
+    this.elm = elm; // Dom 节点
+
+
+
+    this.context = context;    
+
+    this.componentOptions = componentOptions;    
+
+    this.componentInstance = undefined;    
+
+    this.parent = undefined;    
+
+    this.isStatic = false; // 是否静态节点
+
+    this.isComment = false; // 是否是注释节点
+
+    this.isCloned = false; // 是否克隆节点
+
+};
+```
+
+代码中，VNode类中包含了描述一个真实DOM节点所需要的一系列属性，如节点标签名，节点文本，节点包含的子节点等，通过属性之间不同搭配，就可以描述出各种类型的DOM节点
+
+##### VNode的类型
+
+它可以描述出哪些类型的节点呢？
+
+- 注释节点
+- 文本节点
+- 元素节点
+- 组件节点
+- 函数式组件节点
+- 克隆节点
+
+**注释节点**：
+
+```javascript
+export const createEmptyVNode = (text: string = '') => {
+  const node = new VNode()
+  node.text = text
+  node.isComment = true
+  return node
+}
+```
