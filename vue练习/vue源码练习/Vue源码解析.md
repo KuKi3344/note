@@ -386,7 +386,7 @@ function Watcher(vm, exp, cb) {
 
 Dep与Watcher间，Dep先建立。（先`observe(data,this),再this.$compile`）。`observe(data，this)`对data中所有层次的属性通过数据劫持实现数据绑定，创建Dep。
 
-关系实在data中属性的get()中建立 
+关系实在data中属性的`get()`中建立 
 
 对应关系举例如下：
 
@@ -425,8 +425,8 @@ new MVVM()过程中创建两个实例，一个是observer一个是Compile。obse
 
 - 双向数据绑定是建立在单向数据绑定`（model==>View）`的基础之上的
 - 双向数据绑定的实现流程：
-  - 在解析v-model指令时，给当前元素添加input监听
-  - 当input的value发生改变时，将最新的值赋值给当前表达式所对应的data属性
+  - 在解析`v-model`指令时，给当前元素添加`input`监听
+  - 当`input`的`value`发生改变时，将最新的值赋值给当前表达式所对应的`data`属性
 
 ## 虚拟DOM
 
@@ -434,7 +434,7 @@ new MVVM()过程中创建两个实例，一个是observer一个是Compile。obse
 
 **什么是虚拟DOM？**
 
-所谓虚拟DOM，就是用一个JS对象来描述一个DOM节点，例如以下
+所谓虚拟`DOM`，就是用一个`JS`对象来描述一个`DOM`节点，例如以下
 
 ```javascript
 <div class="a" id="b">我是内容</div>
@@ -453,11 +453,11 @@ new MVVM()过程中创建两个实例，一个是observer一个是Compile。obse
 
 **为什么要有虚拟DOM？**
 
-Vue是数据驱动视图的，数据发生变化视图就要随之更新，在更新视图的时候难免要操作DOM，而操作真实DOM又是非常耗费性能的，因为DOM设计的十分复杂，一个真正的DOM元素是非常庞大的，如下
+Vue是数据驱动视图的，数据发生变化视图就要随之更新，在更新视图的时候难免要操作`DOM`，而操作真实`DOM`又是非常耗费性能的，因为`DOM`设计的十分复杂，一个真正的`DOM`元素是非常庞大的，如下
 
 ![](https://vue-js.com/learn-vue/assets/img/1.a052465d.png)
 
-一个空的div标签，就能打印出这么多东西，而不用说更复杂的DOM节点了，所以直接操作真是DOM是非常消耗性能的。
+一个空的`div`标签，就能打印出这么多东西，而不用说更复杂的`DOM`节点了，所以直接操作真实`DOM`是非常消耗性能的。
 
 那如何在更新视图的时候尽可能少的操作`DOM`呢？最直观的思路就是我们不要盲目的去更新视图，而是通过对比数据变化前后的状态，计算出视图中哪些地方需要更新，只更新需要更新的地方，而不需要更新的地方则不需关心，这样我们就可以尽可能少的操作`DOM`了。
 
@@ -519,7 +519,9 @@ function VNode(
 - 函数式组件节点
 - 克隆节点
 
-**注释节点**：
+`VNode`类可以描述6种类型的节点，而实际上只有3种类型的节点能够被创建并插入到`DOM`中，它们分别是：元素节点、文本节点、注释节点。
+
+**注释节点：**
 
 ```javascript
 export const createEmptyVNode = (text: string = '') => {
@@ -529,3 +531,200 @@ export const createEmptyVNode = (text: string = '') => {
   return node
 }
 ```
+
+描述一个注释节点只需两个属性，分别是：`text`和`isComment`。其中`text`属性表示具体的注释信息，`isComment`是一个标志，用来标识一个节点是否是注释节点
+
+**文本节点：**
+
+文本节点描述起来比注释节点更简单，只需要一个属性——text
+
+```javascript
+// 创建文本节点
+export function createTextVNode (val: string | number) {
+  return new VNode(undefined, undefined, undefined, String(val))
+}
+```
+
+**克隆节点：**
+
+克隆节点就是把一个已经存在的节点复制一份出来，它主要是为了做模板编译优化时使用
+
+```javascript
+// 创建克隆节点
+export function cloneVNode (vnode: VNode): VNode {
+  const cloned = new VNode(
+    vnode.tag,
+    vnode.data,
+    vnode.children,
+    vnode.text,
+    vnode.elm,
+    vnode.context,
+    vnode.componentOptions,
+    vnode.asyncFactory
+  )
+  cloned.ns = vnode.ns
+  cloned.isStatic = vnode.isStatic
+  cloned.key = vnode.key
+  cloned.isComment = vnode.isComment
+  cloned.fnContext = vnode.fnContext
+  cloned.fnOptions = vnode.fnOptions
+  cloned.fnScopeId = vnode.fnScopeId
+  cloned.asyncMeta = vnode.asyncMeta
+  cloned.isCloned = true
+  return cloned
+}
+```
+
+从上面代码中可以看到，克隆节点就是把已有节点的属性全部复制到新节点中，而现有节点和新克隆得到的节点之间唯一的不同就是克隆得到的节点`isCloned`为`true`
+
+**元素节点：**
+
+相比之下，元素节点更贴近于我们通常看到的真实`DOM`节点，它有描述节点标签名词的`tag`属性，描述节点属性如`class`、`attributes`等的`data`属性，有描述包含的子节点信息的`children`属性等。由于元素节点所包含的情况相比而言比较复杂，源码中没有像前三种节点一样直接写死
+
+```javascript
+// 真实DOM节点
+<div id='a'><span>难凉热血</span></div>
+
+// VNode节点
+{
+  tag:'div',
+  data:{},
+  children:[
+    {
+      tag:'span',
+      text:'难凉热血'
+    }
+  ]
+}
+```
+
+真实`DOM`节点中:`div`标签里面包含了一个`span`标签，而`span`标签里面有一段文本。反应到`VNode`节点上就如上所示:`tag`表示标签名，`data`表示标签的属性`id`等，`children`表示子节点数组
+
+##### VNode的作用
+
+**那么`VNode`在`Vue`的整个虚拟`DOM`过程起了什么作用呢？**
+
+我们在视图渲染之前，把写好的`template`模板先编译成`VNode`并缓存下来，等到数据发生变化页面需要重新渲染的时候，我们把数据发生变化后生成的`VNode`与前一次缓存下来的`VNode`进行对比，找出差异（**diff算法**），然后有差异的`VNode`对应的真实`DOM`节点就是需要重新渲染的节点，最后根据有差异的`VNode`创建出真实的`DOM`节点再插入到视图中，最终完成一次视图更新。
+
+**总结：**
+
+首先是为什么要有虚拟`DOM`，其实说白了就是**以`JS`的计算性能来换取操作真实`DOM`所消耗的性能**。然后知道了在Vue中是通过`VNode`类来实例化出不同类型的虚拟`DOM`节点，不同类型节点生成的属性不同，但本质还是一样的，都是`VNode`的实例，知识在实例化时传入的属性参数不同。有了数据变化前后的`VNode`，我们就能进行`DOM-Diff`来找出差异，最终做到只更新有差异的视图，从而达到尽可能少的操作真实`DOM`的目的。
+
+##### Vue2.0 render
+
+**==关于Vue2.0 render: h => h(App)的解释==**
+
+render: h => h(App)是ES6的写法，其实就是如下内容的简写：
+
+```js
+render: function (createElement) {
+     return createElement(App);
+}
+```
+
+官方文档中是这样的，`createElement `是 Vue.js 里面的 函数，这个函数的作用就是生成一个 `VNode`节点，`render` 函数得到这个 `VNode` 节点之后，返回给 Vue.js 的 `mount` 函数，渲染成真实` DOM` 节点，并挂载到根节点上。
+
+```js
+render: function (createElement) {
+    return createElement(
+      'h' + this.level,   // tag name 标签名称
+      this.$slots.default // 子组件中的阵列
+    )
+  }
+```
+
+然后ES6写法,
+
+```js
+render: createElement => createElement(App)
+```
+
+然后用h代替createElement，使用箭头函数来写：
+
+```js
+render: h => h(App)
+```
+
+**那么h的含义是什么？**
+
+尤雨溪在一个回复中提到：
+
+> 它来自单词 hyperscript，这个单词通常用在 virtual-dom 的实现中。Hyperscript 本身是指
+> 生成HTML 结构的 script 脚本，因为 HTML 是 hyper-text markup language 的缩写（超文本标记语言）
+
+也就是说，createElement 函数是用来生成 HTML DOM 元素的，而上文中的 Hyperscript也是用来创建HTML结构的脚本，这样作者才把 createElement 简写成 h。
+
+而 createElement(也就是h)是vuejs里的一个函数。这个函数的作用就是生成一个 VNode节点，render 函数得到这个 VNode 节点之后，返回给 Vue.js 的 mount 函数，渲染成真实 DOM 节点，并挂载到根节点上。
+
+其实在vue 1.0 中，这样的写法也就是如下的含义：
+
+```js
+new Vue({
+  el: '#app',
+  template:'</App>'
+  componets: {App}
+})
+```
+
+然后页面中使用
+
+```html
+<div id='app'>
+  <app></app>
+</div>
+```
+
+### Vue中的DOM-Diff
+
+在探究`VNode`作用时，说过数据发生变化后生成的`VNode`与前一次缓存下来的`VNode`进行对比，找出差异，而这个对比`VNode`并找出差异的过程就是所谓的`DOM-Diff`过程。`DOM-Diff`算法是虚拟DOM的核心所在
+
+#### patch
+
+在Vue中，把`DOM-Diff`过程叫做`patch`过程,patch意为补丁，即指对旧的`VNode`修补，打补丁从而得到新的`VNode`。说白了就是比对新旧两份`VNode`的过程。要把握这样一个思想：
+
+> 所谓的旧的VNode(即oldVNode)，就是数据变化之前视图所对应的虚拟DOM节点，而新的VNode是数据变化之后将要渲染的新的视图所对应的虚拟DOM节点，所以我们要以生成的新的VNode为基准，对比旧的oldVNode，如果新的VNode上有的节点而旧的oldVNode没有，那么就在旧的oldVNode上加上；如果新的VNode上没有的节点而旧的oldVNode有，那么就在oldVNode上去掉；如果某些节点在新的VNode上和旧的oldVNode上都有，那么就以新的VNode为准，更新旧的oldVNode,从而让新旧VNode相同。
+
+通俗点讲，假设你电脑上现在有一份旧的电子版文档，此时老板又给了你一份新的纸质板文档，并告诉你这两份文档内容大部分都是一样的，让你以新的纸质版文档为准，把纸质版文档做一份新的电子版文档发给老板。对于这个任务此时，你应该有两种解决方案：一种方案是不管它旧的文档内容是什么样的，统统删掉，然后对着新的纸质版文档一个字一个字的敲进去，这种方案就是不用费脑，就是受点累也能解决问题。而另外一种方案是以新的纸质版文档为基准，对比看旧的电子版文档跟新的纸质版文档有什么差异，如果某些部分在新的文档里有而旧的文档里没有，那就在旧的文档里面把这些部分加上；如果某些部分在新的文档里没有而旧的文档里有，那就在旧的文档里把这些部分删掉；如果某些部分在新旧文档里都有，那就对比看有没有需要更新的，最后在旧的文档里更新一下，最终达到把旧的文档变成跟手里纸质版文档一样，完美解决。
+
+对比这两种方案，当然你会选择第二种方案，可以少挨累又省时间，类比下来，第二种方案里的旧的电子版文档对应的就是已经渲染在视图上的`oldVNode`，新的纸质版文档对应的是将要渲染在视图上的新的`VNode`。总之一句话：**以新的VNode为基准，改造旧的oldVNode对之进行修补，使之成为跟新的VNode一样，这就是patch过程要干的事**。
+
+看起来patch做了很多事，实则不然，它无非就干三件事
+
+**那么patch都干了什么事？**
+
+- 创建节点：新的`VNode`中有而旧的`oldVNode`中没有，就在旧的`oldVNode`中创建。
+
+- 删除节点：新的`VNode`中没有而旧的`oldVNode`中有，就从旧的`oldVNode`中删除。
+- 更新节点：新的`VNode`和旧的`oldVNode`中都有，就以新的`VNode`为准，更新旧的`oldVNode`。
+
+现在来逐个分析，看Vue对于以上三件事是怎么做的
+
+##### 创建节点
+
+在上面介绍`VNode`时，曾提及过，只有元素节点、文本节点以及注释节点能够被创建并插入到`DOM`中。所以`Vue`在创建节点的时候会判断在新的`VNode`中有而旧的`oldVNode`中没有的这个节点是属于哪种类型的节点，从而调用不同的方法创建并插入到`DOM`中。
+
+由于这三种类型的节点其特点非常明显，在源码中是这样判断的
+
+```javascript
+// 源码位置: /src/core/vdom/patch.js
+function createElm (vnode, parentElm, refElm) {
+    const data = vnode.data
+    const children = vnode.children
+    const tag = vnode.tag
+    //如果包含tag标签
+    if (isDef(tag)) {
+      	vnode.elm = nodeOps.createElement(tag, vnode)   // 创建元素节点
+        createChildren(vnode, children, insertedVnodeQueue) // 创建元素节点的子节点
+        insert(parentElm, vnode.elm, refElm)       // 插入到DOM中
+        //如果isComement属性位true
+    } else if (isTrue(vnode.isComment)) {
+      vnode.elm = nodeOps.createComment(vnode.text)  // 创建注释节点
+      insert(parentElm, vnode.elm, refElm)           // 插入到DOM中
+        //否则
+    } else {
+      vnode.elm = nodeOps.createTextNode(vnode.text)  // 创建文本节点
+      insert(parentElm, vnode.elm, refElm)           // 插入到DOM中
+    }
+  }
+```
+
