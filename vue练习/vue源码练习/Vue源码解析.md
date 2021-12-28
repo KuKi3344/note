@@ -849,3 +849,9 @@ function patchVnode (oldVnode, vnode, insertedVnodeQueue, removeOnly) {
 ![](https://vue-js.com/learn-vue/assets/img/3.7b0442aa.png)
 
 另外，如果新旧`VNode`里都包含了子节点，那么对于子节点的更新在代码里调用了`updateChildren`方法。
+
+### 模板编译
+
+**什么是模板编译**？
+
+我们知道，在日常开发中，我们把写在`<template></template>`标签中的类似于原生`HTML`的内容称之为模板。这时你可能会问了，为什么说是“类似于原生`HTML`的内容”而不是“就是`HTML`的内容”？因为我们在开发中，在`<template></template>`标签中除了写一些原生`HTML`的标签，我们还会写一些变量插值，如，或者写一些`Vue`指令，如`v-on`、`v-if`等。而这些东西都是在原生`HTML`语法中不存在的，不被接受的。但是事实上我们确实这么写了，也被正确识别了，页面也正常显示了，这又是为什么呢？
