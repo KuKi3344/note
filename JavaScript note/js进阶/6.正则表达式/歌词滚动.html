@@ -6,8 +6,7 @@
 		<style>
 
 		body{
-			background: linear-gradient(0deg,#303030,#323232);
-		
+			/* background-image: url('http://p1.music.126.net/2aTrg-Zz72Ms6ySsjPcKCg==/109951163918904060.jpg'); */
 		}
 		.title{
 			position:absolute;
@@ -16,7 +15,7 @@
 			transform: translateX(-50%);
 			width:400px;
 			height:100px;
-			color:#fff;
+			color:#000000;
 		}
 		.title span{
 			display: block;
@@ -31,19 +30,19 @@
 			font-size: 14px;
 		}
 		.box{
-			width:500px;
+			width:750px;
 			height:370px;
 			position:absolute;
 			left:50%;
 			transform: translateX(-50%);
 			border:none;
 			overflow:hidden;
-			color:#fff;
+			color:#5b5b5b;
 			top:200px;
 		}
 		ul{
 			position: absolute;
-			top:200px;
+			top:198px;
 			width:100%;
 			padding:0;
 			transition:top 2s linear;
@@ -57,8 +56,8 @@
 			font-size:18px;		
 		}
 		ul > li.active{
-			color:#5b7a8d;
-			font-size:25px;
+			color:#5a99b6;
+			font-size:20px;
 		}
 		audio{
 			position:absolute;
@@ -131,7 +130,7 @@
 		//给ul赋值
 		if (index!== -1){
 			ul.style.top = -index * 30 + 200 + 'px';
-			[...ul.children].forEach(item => item.className = '');
+			[...ul.children].forEach(item => item.className = '');	//清空所有li的类名
 			ul.children[index].className = 'active';
 		}
 		//设置当前index的歌词为active
