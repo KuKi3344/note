@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>案例</title>
+		<style>
+			html,
+			body{
+				margin:;
+				padding: 0;
+				height:100%;
+				background-color: aquamarine;
+			}
+			#box{
+				width: 400px;
+				height:250px;
+				text-align: center;
+				background-color: azure;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box">
+
+		</div>
+		<script>
+			window.onload = function(){
+				setInterval(()=>{
+					var dt = new Date()
+					var HH = dt.getHours()
+					var mm = dt.getMinutes()
+					var ss = dt.getSeconds()
+					document.getElementById('box').innerText = HH+':'+mm+':'+ss;
+				},1000)
+			}
+		</script>
+	</body>
+</html>

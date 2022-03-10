@@ -1,0 +1,15 @@
+
+			html,
+			body{
+				margin:;
+				padding: 0;
+				height:100%;
+				background-color: aquamarine;
+			}
+			#box{
+				width: 400px;
+				height:250px;
+				text-align: center;
+				background-color: azure;
+			}
+		
