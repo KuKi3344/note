@@ -249,7 +249,7 @@ const fext = path.extname(path)
 console.log(fext) // 输出 .html
 ```
 
-**练习：实现时钟样例**
+**练习：实现拆分html文件**
 
 目的：将素材目录下的index.html页面，拆分成三个文件，分别是：index.css,index.js,index.html。并将拆分出来的三个文件，存放到clock目录中。
 
@@ -324,3 +324,172 @@ var resolveHTML = function(data){
 
 (等以后有时间用promise.all实现一次orz)
 
+### http模块
+
+http模块是Node.js官方提供的，用来创建web服务器的模块，通过http模块提供的http.createServer()方法，就能方便的把一台普通的电脑，变成一台web服务器，从而对外提供web资源服务
+
+导入：
+
+```js
+const http = require('http')
+```
+
+#### IP地址
+
+ip地址就是互联网上每台计算机的唯一地址，具有唯一性，只有知道对方ip地址的前提下，才能与对应的电脑置渐进行数据通信。
+
+创建最基本的web服务器：
+
+步骤：
+
+- 导入http模块
+- 创建web服务器实例
+- 为服务器实例绑定request事件，监听客户端的请求
+- 启动服务器
+
+```js
+const http = require('http')
+
+const server = http.createServer()
+
+server.on('request',function(req,res){
+	const url = req.url;
+	const method = req.method;
+	const str = `你请求的url地址是${url},请求的方法是${method}`
+	//调用res.setHeader()方法，设置Content-Type 响应头，从而解决中文乱码问题
+	res.setHeader('Content-Type','text/html; charset=utf-8')
+	//调用res.end()方法，向客户端响应一些内容
+	res.end(str);
+})
+
+server.listen(80,function(){
+	console.log('server running at http://127.0.0.1')
+})
+```
+
+根据不同url显示不同页面内容
+
+```js
+const server = http.createServer()
+
+server.on('request',function(req,res){
+	const url = req.url;
+	const method = req.method;
+	let content = '404 not found'
+	if(url === '/' || url === '/index.html'){
+		content = '<h1>首页</h1>'
+	}else if(url ==='/about'){
+		content = '<h1>关于</h1>'
+	}
+	//调用res.setHeader()方法，设置Content-Type 响应头，从而解决中文乱码问题
+	res.setHeader('Content-Type','text/html; charset=utf-8')
+	//调用res.end()方法，向客户端响应一些内容
+	res.end(content);
+})
+
+server.listen(80,function(){
+	console.log('server running at http://127.0.0.1')
+})
+```
+
+
+
+**练习：实现clock时钟的web服务器**
+
+实现步骤：
+
+- 导入需要的模块
+- 创建基本的web服务器
+- 将资源的请求url地址映射为文件的存放路径
+- 读取文件内容并响应给客户端
+- 优化资源的请求路径
+
+```js
+const http = require('http')
+const fs = require('fs')
+const path = require('path')
+
+const server = http.createServer()
+
+server.on('request',function(req,res){
+	const url = req.url;
+	const fpath = path.join(__dirname,url);
+	fs.readFile(fpath,'utf8',(err,data)=>{
+		if(err) return res.end('request error')
+		res.end(data)
+	})
+})
+
+server.listen(80,function(){
+	console.log('server running at http://127.0.0.1')
+})
+```
+
+### 模块化
+
+编程领域中的模块化，就是遵守固定的规则，把一个大文件拆分成独立并相互依赖的多个小模块。
+
+模块拆分的好处：
+
+- 提高了代码的复用性
+- 提高了代码的可维护性
+- 可以实现按需加载
+- 防止全局污染
+
+Node.js中的模块化
+
+Node.js中根据模块来源的不同，将模块分成了三大类：
+
+- 内置模块（Node.js官方提供的，例如fs，path，http等）
+- 自定义模块（自己写的js文件）
+- 第三方模块（第三方开发出来的，使用前需要下载）
+
+**加载模块**
+
+require()方法加载其他模块时，会执行其它模块的代码
+
+**暴露模块**
+
+module.exports
+
+### npm包
+
+定义格式化时间的方法
+
+```js
+function dateformat(data){
+	const dt = new Date(data);
+	
+	const y = dt.getFullYear();
+	const m = padZero(dt.getMonth())+1;
+	const d = padZero(dt.getDate());
+	
+	
+	const hh = padZero(dt.getHours());
+	const mm = padZero(dt.getMinutes());
+	const ss = padZero(dt.getSeconds());
+	
+	return `${y}-${m}-${d} ${hh}:${mm}:${ss}`
+}
+
+function padZero(n){
+	n > 9 ? n : '0'+n
+}
+
+module.exports = {
+	dateformat
+}
+```
+
+```js
+const time = require('./timeformat.js')
+
+const dt = new Date()
+console.log(dt)
+let newdate = time.dateformat(dt)
+console.log(newdate)
+```
+
+格式化时间的高级做法：
+
+直接npm下载安装格式化时间的包，require导入然后进行格式化
