@@ -493,3 +493,314 @@ console.log(newdate)
 格式化时间的高级做法：
 
 直接npm下载安装格式化时间的包，require导入然后进行格式化
+
+## Express
+
+什么是Express？
+
+Express的作用和Nodejs内置的http模块类似，是专门用来创建Web服务器的
+
+Express是基于http内置模块封装出来的，能提高开发效率
+
+Express可以做web网站服务器和API接口的服务器
+
+```js
+const express = require('express');
+//创建web服务器
+const app = express();
+//启动web服务器监听80端口
+app.listen(80,()=>{
+	console.log('express server running at http://127.0.0.1')
+})
+```
+
+### 监听GET请求
+
+通过app.get()监听get请求
+
+```js
+app.get('url',function(req,res){//函数})
+```
+
+req:请求对象（包含了请求相关属性与方法）
+
+res:响应对象（包含了响应相关的属性与方法）
+
+### 监听POST请求
+
+通过app.post()方法，可以监听 客户端的POST请求
+
+```js
+app.post('url',funciton(req,res){//函数})
+```
+
+req:请求对象（包含了请求相关属性与方法）
+
+res:响应对象（包含了响应相关的属性与方法）
+
+**把内容响应给客户端**
+
+通过res.send()方法，可以把处理好的内容发送给客户端
+
+```js
+app.get('/user',(req,res)=>{
+	res.send({name:'zs',age:20,sex:'男'})
+})
+app.post('/user',(req,res)=>{
+	res.send('请求成功')
+})
+```
+
+```js
+const express = require('express');
+
+const app = express();
+
+app.listen(80,function(){
+	console.log('runnig')
+})
+
+app.get('/user',(req,res)=>{
+	res.send({name:'wanglu',age:21,sex:'女'});
+})
+app.post('/user',(req,res)=>{
+	res.send('success');
+})
+```
+
+通过postman测试，数据反馈成功
+
+**获取URL中携带的查询参数**
+
+通过req.query对象，可以访问到客户端通过查询字符串的形式，发送到服务器的参数
+
+```js
+app.get('/',(req,res)=>{
+	console.log(req.query)
+	res.send(req.query)
+})
+```
+
+**获取URL中的动态参数**
+
+通过req.params对象，可以访问到URL中，通过`:`匹配到的动态参数
+
+```js
+//:id是一个动态的参数
+app.get('/user/:id',(req,res)=>{
+	res.send(req.params)
+})
+```
+
+存在跨越问题就加一条`res.setHeader('Access-Control-Allow-Origin', '*');`
+
+**托管静态资源**
+
+**express.static()**
+
+express提供了一个非常好用的函数，叫做express.static()，通过它，我们可以非常方便地创建一个静态资源服务器，例如，通过如下就可以将public目录下的图片，css文件，js文件对外开放访问了
+
+```js
+app.use(express.static('public'))
+```
+
+例如：`http://localhost:80/css/style.css`
+
+**注意：**Express在指定的静态目录中查找文件，并对外提供资源的访问路径，因此，存放静态文件的目录名不会出现在URL中
+
+**挂在路径资源**
+
+```js
+app.use('files',express.static('public'))
+```
+
+变成了：`http://localhost:80/files/css/style.css`
+
+### nodemon
+
+nodemon可以监听你的代码变化，当代码变化时帮你自动重启服务器，不用手动重启。
+
+使用：`nodemon xxx.js`
+
+### 路由
+
+什么是路由？
+
+广义上来讲，路由就是映射关系。
+
+在Express中，路由指的是客户端的请求与服务器处理函数之间的映射关系
+
+Express中的路由分三部分组成，分别是请求的类型，请求的URL地址，处理函数，格式如下
+
+```js
+app.method(path,handler)
+```
+
+每当一个请求到达服务器之后，需要先经过路由的匹配，只有匹配成功之后，才会调用对应的处理函数
+
+在匹配时，会按照路由的顺序进行匹配，如果请求类型和请求的URL同时匹配成功，则Express会将这次请求，转交给对应的function函数进行处理
+
+```js
+app.get('/user',(req,res)=>{
+	res.send(req.params)
+})
+```
+
+如上就算挂载路由（挂载到app上）
+
+为了方便对路由进行模块化的管理，Express不建议将路由直接挂载到app上，而是推荐将路由抽离为单独的模块
+
+- 调用express.Router()函数创建路由对象
+
+- 由路由对象上挂在具体的路由
+
+- 使用module.exports向外共享路由对象
+
+- 使用app.use()函数注册路由模块
+
+```js
+//路由模块
+const express = require('express');
+//创建路由对象
+const router = express.Router();
+//挂载具体的理由
+router.get('/user',(req,res)=>{
+	res.send('get user');
+})
+router.post('user/post',(req,res)=>{
+	res.send('post user');
+})
+//向外导出路由对象
+module.exports = router
+```
+
+```js
+const express = require('express');
+const app = express()
+
+const router = require('./router.js');
+app.use(router)
+app.listen(80,()=>{
+    console.log('running');
+})
+```
+
+**注：**app.use()函数的作用，就是来注册全局中间件
+
+**为路由模块添加前缀**
+
+在导入路由模块时，加入前缀
+
+```js
+app.user('/api',router)
+```
+
+在访问router里的模块，都会有api这个前缀，和静态资源统一挂载前缀方法是一样的
+
+### 中间件
+
+什么是中间件，指的是业务处理过程中的中间处理环节，上一级的输出作为下一级的输入
+
+**调用流程**
+
+当一个请求到达Express的服务器之后，可以连续调用多个中间件，从而对这次请求进行预处理，本质上就是一个function处理函数
+
+next函数的作用
+
+next函数是实现多个中间件连续调用的关键，它表示把流转关系转交给下一个中间件或路由
+
+**定义中间件函数**
+
+```js
+//常量mw所指向的就是一个中间件函数
+const mw = function(req,res,next){
+	console.log('这是一个中间件函数');
+    //在当前中间件的业务处理完毕后，必须调用next()函数
+    //表示把流转关系转交给下一个中间件或者路由
+	next();
+}
+```
+
+**全局生效的中间件**
+
+客户端发起的任何请求，到达服务器之后，都会触发的中间件，叫做全局生效的中间件
+
+通过调用app.use()即可定义一个全局生效的中间件
+
+```js
+const mw = function(req,res,next){
+	console.log('这是一个中间件函数');
+	next();
+}
+
+app.use(mw)
+```
+
+本质类似于拦截器，如果不next就不会往下运行
+
+多个中间件之间，共享同一份req和res，基于这样的特性，我们可以在上游的中间件中，统一为req或res对象添加自定义的属性或方法，供下游的中间件或路由进行使用
+
+**局部生效的中间件**
+
+不适用app.use()定义的中间件，叫做局部生效的中间件，如下
+
+```js
+const mw1 = function(req,res,next){
+	console.log('中间件函数')
+	next();
+}
+//mw1这个中间件旨在当前路由中生效，这种用法属于是局部生效的中间件
+app.get('/',mw1,function(req,res){
+	res.send('home')
+})
+//mw1这个中间件不会影响下面这个路由
+app.get('/user',function(req,res){
+	res.send('user')
+})
+```
+
+**注意**：中间件要写在匹配的路由的前面，因为服务器是从上往下匹配的，如果先匹配到了路由，就会直接响应了而不是往下匹配中间件了
+
+**中间件的注意事项：**
+
+- 一定要在路由之前注册中间件
+- 客户端发送过来的请求，可以连续调用多个中间件进行处理
+- 执行完中间件的业务代码之后，不要忘记调用next()函数
+- 为了防止代码逻辑混乱，调用next()函数后，不要再写额外的代码
+- 连续调用多个中间件时，多个中间件之间，共享req和res对象
+
+**应用级别的中间件**
+
+以上直接绑定到app实例上的，都是应用级别中间件
+
+**路由级别中间件**
+
+绑定到router实力上的，时路由级别中间件
+
+```js
+const app = express();
+const router = express.Router();
+
+router.use(function(req,res,next){
+	console.log('Time',Date.now())
+    next()
+})
+app.use('/',router)
+```
+
+**错误级别的中间件**
+
+错误级别中间件的作用：专门用来捕获整个项目中发生的异常错误，从而防止项目异常崩溃的问题。格式：错误级别中间件的function处理函数中，必须有四个形参
+
+```js
+app.get('/',function(req,res){
+	throw new Error('服务器内部发生了错误');
+	res.send('home')
+})
+app.use(function(err,req,res,next){
+	console.log('发生了错误'+err.message)
+	res.send('Error!'+err.message)
+})
+```
+
+**注意**：错误级别的中间件，必须注册在所有路由之后
