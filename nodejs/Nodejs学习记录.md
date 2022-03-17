@@ -705,11 +705,11 @@ app.user('/api',router)
 
 当一个请求到达Express的服务器之后，可以连续调用多个中间件，从而对这次请求进行预处理，本质上就是一个function处理函数
 
-next函数的作用
+**next函数的作用**
 
 next函数是实现多个中间件连续调用的关键，它表示把流转关系转交给下一个中间件或路由
 
-**定义中间件函数**
+#### **定义中间件函数**
 
 ```js
 //常量mw所指向的就是一个中间件函数
@@ -804,3 +804,248 @@ app.use(function(err,req,res,next){
 ```
 
 **注意**：错误级别的中间件，必须注册在所有路由之后
+
+**内置中间件**
+
+- express.static：托管静态资源如HTML,CSS,图片等
+- express.json：通过它可以解析JSON格式的请求体数据
+
+- express.urlencoded:解析URL-encoded格式的请求体数据
+
+用法是
+
+```js
+app.use(express.json())
+app.use(express.urlencoded({extended:false}))
+```
+
+**示例**：
+
+```js
+const express = require('express')
+const app = express()
+
+//通过exoress.json()来解析表单中JSON格式的数据
+app.use(express.json())
+app.use(express.urlencoded({entended:false}))
+
+app.post('/user',(req,res)=>{
+	console.log(req.body)
+	//在服务器可以用req.body这个属性，来接受客户端发送过来的请求体数据
+	//默认情况下，如果不配置解析表单数据的中间件，req.body默认等于undefined
+	//json数据是用postman在body里的x-www-form-urlencoded发送的模拟数据
+	res.send('ok')
+})
+
+app.post('/book',(req,res)=>{
+	//json数据是用postman在body里的row选择json格式发送的模拟数据
+	console.log(req.body)
+	res.send('ok')
+})
+
+app.listen(80,()=>{
+	console.log('running')
+})
+
+```
+
+**第三方的中间件**
+
+非Express官方内置的，是由第三方开发出来的中间件。例如之前的版本经常使用body-parser这个第三方中间件来解析请求体数据
+
+#### **自定义中间件**
+
+需求描述和实现步骤：
+
+手动模拟一个类似于express.unlencoded这样的中间件，来解析POST提交到服务器的表单数据
+
+实现步骤：
+
+- 定义中间件
+- 监听req的data事件
+- 监听req的end事件
+- 使用querystring模块解析请求体数据
+- 将解析出来的数据对象挂在为req.body
+- 将自定义中间件封装为模块
+
+使用`app.use(function(req,res,next){......})`定义中间件
+
+**监听req的data事件**，来获取客户端发送到服务器的数据
+
+如果数据量比较大，无法一次性发送完毕，则客户端会把数据切割后，分批发送到服务器，所以data事件可能被触发多次，每一次触发时，获取到数据只是完整数据的一部分，需要手动对接收到的数据进行拼接。
+
+**监听req的end事件**，当请求体数据接收完毕之后，会自动触发req的end事件，因此我们可以在req的end事件中，拿到并处理完整的请求体数据
+
+**使用querystring模块解析请求体数据**
+
+nodejs内置一个querystring模块，专门用来处理查询字符串，通过这个模块提供的parse()函数，可以把查询字符串解析成对象的格式
+
+**将解析出来的数据对象挂载为req.body**
+
+上游的中间件和下游的中间件及路由置渐，共享同一份req和res，因此我们可以将解析出来的数据，挂载为req的自定义属性，命名为req.body，供下游使用
+
+**将自定义中间件封装为模块**
+
+**最终结果：**
+
+```js
+//test4.js
+const express = require('express')
+const app = express()
+const bodyparSer = require('./custom-parse.js')
+app.use(bodyparSer)
+
+app.post('/user',(req,res)=>{
+	res.send(req.body)
+})
+
+app.listen(80,()=>{
+	console.log('running');
+})
+```
+
+```js
+//custom-parse.js
+const qs = require('querystring')
+
+function bodyparSer(req,res,next){
+	let str = '';
+	//监听req的data事件
+	req.on('data',(chunk)=>{
+		str+=chunk;
+	})
+	//监听req的end事件
+	req.on('end',()=>{
+		req.body = qs.parse(str);
+		next()
+	})
+}
+module.exports = bodyparSer
+```
+
+### 使用express写接口
+
+#### **GET接口**
+
+```js
+//apiRouter.js
+const express = require('express')
+const router = express.Router()
+
+router.get('/get',(req,res)=>{
+	const query = req.query;
+	res.send({
+		status:0,
+		msg:'get请求成功',
+		data:query
+	})
+})
+module.exports = router
+```
+
+```js
+//test5.js
+const express = require('express')
+const app = express()
+
+const router = require('./apiRouter.js')
+app.use('/api',router)
+
+app.listen(80,()=>{
+	console.log('runnig')
+})
+```
+
+#### POST接口
+
+```js
+//apiRouter.js
+const express = require('express')
+const router = express.Router()
+
+router.get('/get',(req,res)=>{
+	const query = req.query;
+	res.send({
+		status:0,
+		msg:'get请求成功',
+		data:query
+	})
+})
+
+router.post('/post',(req,res)=>{
+	const body = req.body
+	res.send({
+		status:0,
+		msg:'post成功',
+		data:body
+	})
+})
+module.exports = router
+```
+
+```js
+//test5.js
+const express = require('express')
+
+const app = express()
+
+//配置解析表单数据的中间件
+app.use(express.urlencoded({extended:false}))
+
+const router = require('./apiRouter.js')
+
+app.use('/api',router)
+
+app.listen(80,()=>{
+	console.log('runnig')
+})
+```
+
+#### **CORS**
+
+先安装中间件`npm install cors`
+
+配置CORS中间件解决接口跨域问题
+
+```js
+const cors = require('cors');
+app.use(cors())
+```
+
+**什么是CORS？**
+
+CORS（Cross-Orgin Resource Sharing，跨域资源共享）由一些列HTTP响应头组成，这些HTTP响应头决定浏览器是否阻止前端JS代码跨域获取资源
+
+浏览器的同源安全策略默认会阻止网页“跨域”获取资源，但如果接口服务器配置了CORS相关的HTTP响应头，就可以解除浏览器端的跨域访问限制
+
+**注意：**CORS主要在服务器端配置，客户端浏览器无须任何额外的配置。CORS在浏览器中由兼容性，只有支持http2的浏览器才能正常访问开启了CORS的服务器端口
+
+**CORS响应头部：`Access-Control-Allow-Origin`**
+
+`Access-Control-Allow-Origin`可以是一个具体的域名也可以是一个*。
+
+```js
+res.setHeader('Access-Control-Allow-Origin','http://xxxx.cn')
+```
+
+例如上面的字段是将只允许来自http://xxxx.cn的请求
+
+*是通配符，表示允许来自任何域的请求
+
+**CORS响应头部-`Access-Control-Allow-Headers`**
+
+默认情况下，CORS仅支持客户端向服务器发送九个请求头，如果客户端向服务器发送了额外的请求头信息，则需要在服务器端通过`Access-Control-Allow-Headers`对额外的请求头进行声明，否则会请求失败
+
+```js
+res.setHeader('Access-Control-Allow-Headers','xxxxxx')
+```
+
+**CORS响应头部：`Access-Control-Allow-Methods`**
+
+默认情况下，CORS仅支持客户端发起GET\POST\HEAD请求，如果客户端希望通过PUT,DELETE等方式请求服务器的资源，则需要在服务器端，通过`Access-Control-Allow-Methods`来指明实际请求所允许使用的HTTP方法
+
+```js
+res.setHeader('Access-Control-Allow-Methods','POST,GET,DELETE,PUT,HEAD')
+res.setHeader('Access-Control-Allow-Methods','*')
+```
+
