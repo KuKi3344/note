@@ -1049,3 +1049,215 @@ res.setHeader('Access-Control-Allow-Methods','POST,GET,DELETE,PUT,HEAD')
 res.setHeader('Access-Control-Allow-Methods','*')
 ```
 
+### 使用mysql模块操作MySQL
+
+#### 查找
+
+查找逻辑上没被删除的用户
+
+```js
+const sqlstr = 'select * from user where status = 1'
+db.query(sqlstr,(err,result)=>{
+	if(err){
+		console.log(err.message)
+		return
+	}
+		console.log(result)
+})
+```
+
+
+
+#### 添加
+
+```JS
+const mysql = require('mysql')
+const db = mysql.createPool({
+	host:'127.0.0.1',
+	user:'root',
+	password:'mysql123456',
+	database:'my_db_01'
+}) 
+const user = {username:'小力民',password:'123456',status:1}
+//插入
+const sqlstr = 'insert into user (username, password,status) values (?, ?, ?)'
+db.query(sqlstr,[user.username,user.password,user.status],(err,result)=>{
+	if(err){
+		console.log(err.message)
+		return;
+	}
+	if(result.affectedRows === 1){
+		console.log('插入成功')
+	}
+}) 
+```
+
+但是这么插入数据有一个问题，现在只是插入了三个属性，但如果是一百个属性呢？也要一个个列出来吗
+
+**便捷方式：**
+
+```js
+const sqlstr = 'insert into user set ?'
+db.query(sqlstr,user,(err,results)=>{
+......
+})
+```
+
+`set ?`就是一个简化的写法，user里的属性会自动对应表中字段
+
+#### 更新
+
+```js
+//更新用户信息
+const user = { id: 2 ,username:'王虎',password:'333333'}
+const sqlstr = 'update user set username = ?,password=? where id =?'
+db.query(sqlstr,[user.username,user.password,user.id],(err,result)=>{
+	if(err){
+		console.log(err.message)
+		return
+	}
+	if(result.affectedRows === 1){
+		console.log('更新成功')
+	}
+})
+//利用更新逻辑删除——置status为0
+const user = { id: 2 ,status:0}
+const sqlstr = 'update user set status = ? where id =?'
+db.query(sqlstr,[user.status,user.id],(err,result)=>{
+	if(err){
+		console.log(err.message)
+		return
+	}
+	if(result.affectedRows === 1){
+		console.log('更新成功')
+	}
+})
+```
+
+**便捷更新多个属性方式：**
+
+```js
+const sqlstr = 'uodate user set ? where id = ?'
+db.query(sqlstr,[user,user.id],(err,result)=>{
+	if(err){
+	 console.log(err.message);
+	}
+	if(result.affectedRows === 1){
+		console.log('更新成功')
+	}
+})
+```
+
+#### 删除
+
+建议逻辑删除代替物理删除（逻辑删除即为通过设置一个字段status或其它，通过这个字段值判断是否删除），物理删除就是直接DELETE操作数据库，因为可能会造成语句错误导致表直接寄，**所以谨慎使用**
+
+```js
+const sqlstr = 'delete from user where id = ?'
+db.query(sqlstr,2,(err,result)=>{
+	if(err){
+		console.log(err.message)
+		return
+	}
+	if(result.affectedRows ===1 ){
+		console.log('删除成功')
+	}
+})
+```
+
+## web开发模式
+
+- **服务端渲染的web开发模式**
+
+服务器发送给客户端的HTML页面，实在服务器通过字符串的拼接，动态生成的，因此客户端不需要使用Ajax这样的技术额外请求页面数据
+
+**优点**：前端耗时少，有利于SEO
+
+**缺点**：占用服务器端资源，不利于前后端分离，开发效率低
+
+- **前后端分离的web开发模式**
+
+前后端分离的开发模式，依赖于Ajax技术的广泛应用。后端负责提供API接口，前端使用Ajax调用接口的开发模式
+
+**优点**：开发体验好，前后端互不干扰，前端有更多的选择性
+
+**缺点**：不利于页面SEO 
+
+### 身份认证
+
+服务器端渲染推荐使用session认证机制
+
+前后端分离推荐使用JWT认证机制
+
+#### Session认证机制
+
+##### HTTP协议的无状态性
+
+了解HTTP的无状态性是进一步学习Session认证机制的必要前提
+
+HTTP协议的无状态性，指的是客户端的每次HTTP请求都是独立的，连续多个请求之间没有直接的关系，服务器不会主动保留每次HTTP请求的状态
+
+**如何突破HTTP无状态的限制？**
+
+通过cookie记录
+
+**Cookie**
+
+cookie是存储在用户浏览器中的一段不超过4kb的字符串，它由一个名称，一个值和其它几个用于控制Cookie有效期、安全性、使用范围的可选属性组成
+
+不同域名下的Cookie各自独立，每当客户端发起请求时，会自动把当前域名下所有未过期的Cookie一同发送到服务器
+
+**Cookie不具有安全性**
+
+由于Cookie是存储在浏览器中的，而且浏览器也提供了独写Cookie的API，因此Cookie很容易被伪造，不具有安全性，因此不建议服务器将重要的隐私数据，通过Cookie形式发送给服务器
+
+**提高身份认证的安全性**
+
+服务器端拿到cookie，要对这个cookie进行认证，检验是不是存在的正确的cookie，是的话才会正常使用
+
+“会员卡+刷卡认证”的设计理念，就是Session认证机制的精髓
+
+#### 在Express中使用Session认证
+
+配置express-session中间件
+
+express-session中间件安装完成后，需要通过app.use()来注册session中间件
+
+```js
+var session = require('express-session')
+
+app.use(session({
+	secret:'keyboard cat', //secret 属性的值可以是任意字符串
+	resave:false,		  //固定写法
+	saveUninitialized:true //固定写法
+}))
+```
+
+**向session中存数据**
+
+当express-session中间件配置成功后，即可通过req.session来访问喝使用session对象，从而存储用户的关键信息
+
+```js
+app.post('/api/login',(req,res)=>{
+	if(req.body.username !=='admin'||req.body.password !=='000000'){
+	res.send({status:1,msg:'登陆失败'})
+	return;
+	}
+	req.session.user = req.body
+	req.session.islogin = true
+	res.send({status:0,msg:'登陆成功'})
+})
+```
+
+**从session中取数据**
+
+可以直接从req.session对象上获取之前存储的数据
+
+```js
+app.get('/api/username',(req,res)=>{
+	if(!req.session.islogin){
+		return res.send({status:1}.msg:'fail')
+	}				     			res.send({status:0,msg:'success',username:req.session.user  .username})
+})
+```
+
