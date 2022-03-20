@@ -1217,7 +1217,7 @@ cookie是存储在用户浏览器中的一段不超过4kb的字符串，它由�
 
 “会员卡+刷卡认证”的设计理念，就是Session认证机制的精髓
 
-#### 在Express中使用Session认证
+#### Session认证
 
 配置express-session中间件
 
@@ -1261,3 +1261,250 @@ app.get('/api/username',(req,res)=>{
 })
 ```
 
+#### JWT认证机制
+
+JWT是目前最流行的跨域认证解决方案
+
+##### **工作原理**
+
+客户端登录，提交账号密码，验证过后，服务端响应，将用户信息对象加密之后生成Token发送给客户端。客户端将token存储，客户端再次发起请求时，通过请求头的`Authorization`字段，将token发给服务器，服务器将Token字符串还原成用户的信息对象并进行身份认证，认证后服务器生成针对当前用户的响应内容，把当前用户对于的页面内容相应回浏览器
+
+**总结**： 用户的信息通过Token字符串的格式，保存在客户端浏览器中，服务器通过还原Token字符串的形式来认证用户的身份。
+
+##### 组成部分
+
+JWT通常由三部分组成，分别是Header（头部），Payload（有效荷载），Signature（签名）。三者之间用`.`分隔，格式如下：
+
+```
+Header.Payload.Signature
+```
+
+其中**Payload**部分才是真正的用户信息，它是用户信息经过加密之后生成的字符串
+
+**Header**和**Signature**是安全性相关的部分，只是为了保证Token的安全性
+
+客户端收到服务器返回的JWT之后，通常会将他存储在localStorage或者sessionStorage中，此后，客户端每次与服务器通信，都要带上这个JWT的字符串，从而进行身份认证，推荐就是把JWT放在HTTP请求头的Authorization字段中，格式如下:`Authorization: Bearer <token>`
+
+##### **在Express中使用JWT**
+
+安装JWT相关包
+
+```
+npm install jsonwebtoken express-jwt
+```
+
+- jsonwebtoken：生成JWT字符串
+- express-jwt：将JWT字符串解析还原成JSON对象
+
+**定义secret密钥**
+
+为了保证JWT字符串的安全性，防止JWT字符串在网络传输过程中被人破解，我们需要专门定义一个用于加密和解密的secret密钥
+
+- 当生成JWT字符串的时候需要使用secret密钥对用户的信息进行加密，最终得到加密好的JWT字符串
+- 当把JWT字符串解析还原成JSON对象的时候，需要使用secret密钥进行解密。
+
+**生成JWT字符串**
+
+```js
+var express = require('express')
+const app = express()
+const jwt = require('jsonwebtoken')
+const expressJWT = require('express-jwt')
+
+const secretKey = 'kukiqwq55'
+app.post('/api/login',(req,res)=>{
+	if(req.body.username !=='admin'||req.body.password !=='000000'){
+	res.send({status:1,msg:'登陆失败'})
+	return;
+	}
+	const tokenStr = jwt.sign({username:req.body.username},secretKey,{ expiresIn:'30s' })
+	res.send({status:0,msg:'登陆成功',token:tokenStr})
+})
+```
+
+##### 还原JWT字符串
+
+通过express-jwt中间件，自动将客户端发送过来的Token解析还原成JSON对象
+
+```js
+app.use(expressJWT({ secret:secretKey,algorithms:['HS256'] }).unless({path:[/^\/api\//]}))
+
+```
+
+unless指的是不需要验证权限的路径（比如注册登录），除了这些路径外的其它路径都要验证
+
+**获取用户信息**
+
+当express-jwt这个中间件配置成功后，即可在那些有权限的接口中，使用req.user对象，来访问从JWT字符串中解析出来的用户信息了
+
+只要配置成功了express-jwt这个中间件，就可以把解析出来的用户信息挂载到req.user上
+
+**注意**：不要把密码加密到JWT中
+
+```js
+app.get('/admin/getinfo',function(req,res){
+	console.log(req.user)
+	res.send({
+		status:200,
+		message:'success',
+		data:req.user
+	})
+})
+```
+
+通过express-jwt解析的JSON对象会自动挂载到req.user上
+
+##### 捕获解析JWT失败后产生的错误
+
+当使用express-jwt解析Token字符串时，如果客户端发送过来的Token字符串过期或者不合法，会产生一个解析失败的错误，我们可以通过Express的错误中间件，来捕获这个错误并进行相关的处理
+
+```js
+app.use((err,req,res,next)=>{
+		if(err.name === 'UnauthorizedError'){
+			return res.send({status:401,message:'无效的token'})
+		}
+		res.send({status:500,message:'未知错误'})
+})
+```
+
+**全部流程代码：**
+
+实现了登录的jwt的token生成，以及通过Header的Authorization取个人信息的JWT认证
+
+```js
+var express = require('express')
+const app = express()
+const jwt = require('jsonwebtoken')
+const expressJWT = require('express-jwt')
+
+const secretKey = 'kukiqwq55'
+app.use(express.urlencoded({extended:false}))
+app.use(expressJWT({ secret:secretKey,algorithms:['HS256'] }).unless({path:[/^\/api\//]}))
+
+app.use((err,req,res,next)=>{
+		if(err.name === 'UnauthorizedError'){
+			return res.send({status:401,message:'无效的token'})
+		}
+		res.send({status:500,message:'未知错误'})
+})
+
+app.post('/api/login',(req,res)=>{
+	if(req.body.username !=='admin'||req.body.password !=='000000'){
+	res.send({status:1,msg:'登陆失败'})
+	return;
+	}
+	const tokenStr = jwt.sign({username:req.body.username},secretKey,{ expiresIn:'30s' })
+	res.send({status:0,msg:'登陆成功',token:tokenStr})
+})
+
+app.get('/admin/getinfo',function(req,res){
+	console.log(req.user)
+	res.send({
+		status:200,
+		message:'success',
+		data:req.user
+	})
+})
+
+app.listen(80,()=>{
+	console.log('running')
+})
+```
+
+但这并没有连接数据库，只是假数据，让我们连接数据库试试
+
+```js
+var express = require('express')
+const app = express()
+const jwt = require('jsonwebtoken')
+const expressJWT = require('express-jwt')
+//操作数据库
+const mysql = require('mysql')
+const db = mysql.createPool({
+	host: '127.0.0.1',
+	user: 'root',
+	password: 'mysql123456',
+	database: 'my_db_01'
+})
+
+//密钥
+const secretKey = 'kukiqwq55'
+//解析URL-encoded格式的请求体数据
+app.use(express.urlencoded({
+	extended: false
+}))
+//中间件解析请求头部Authorization中携带的token
+app.use(expressJWT({
+	secret: secretKey,
+	algorithms: ['HS256']
+}).unless({
+	path: [/^\/api\//]
+}))
+//错误中间件，分析抛出的错误
+app.use((err, req, res, next) => {
+	if (err.name === 'UnauthorizedError') {
+		return res.send({
+			status: 401,
+			message: '无效的token'
+		})
+	}
+	res.send({
+		status: 500,
+		message: '未知错误'
+	})
+})
+
+app.post('/api/login', (req, res) => {
+	let username = req.body.username;
+	let password = req.body.password
+	const sqlStr = 'select * from user where username = ? and password = ?'
+	//查询数据库
+	db.query(sqlStr,[username,password],(err,result)=>{
+		if(err){
+			console.log(err)
+		return res.send({
+				status: 1,
+				msg: '登陆失败'
+			})
+		}
+			console.log(result)
+			//小于1说明没查到这个人
+			if(result.length < 1) return res.send({status:403,message:'用户名或者密码错误'});
+			//生成token
+			const tokenStr = jwt.sign({
+				data:result
+			}, secretKey, {
+				expiresIn: '30s'
+			})
+			//把token发送给客户端
+			res.send({
+				status: 0,
+				msg: '登陆成功',
+				token: tokenStr
+			})
+	})
+})
+
+app.get('/admin/getinfo', function(req, res) {
+	//通过中间件解析出来的token会自动挂载到req.user，上面已经全局使用了解析token的中间件
+	console.log(req.user)
+	res.send({
+		status: 200,
+		message: 'success',
+		data: req.user.data
+	})
+})
+
+app.listen(80, () => {
+	console.log('running')
+})
+
+```
+
+返回数据格式如下：
+
+**登录接口：**
+
+![1](express/img/1.png)
+
+**获取用户信息接口**：![2](express/img/2.png)
