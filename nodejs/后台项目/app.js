@@ -7,10 +7,28 @@ app.use(cors())
 //解析表单数据，只能解析application/x-www-form-urlencoded格式的表单数据
 app.use(express.urlencoded({extended:false}))
 
+const expressJWT = require('express-jwt')
+const secretKey = 'kukiqwq55'
+//中间件解析请求头部Authorization中携带的token
+app.use(expressJWT({
+	secret: secretKey,
+	algorithms: ['HS256']
+}).unless({
+	path: [/^\/api\//] 
+}))
+
 const userRouter = require('./router/user')
 app.use('/api',userRouter)
 
+const userinfoRouter = require('./router/userinfo')
+app.use('/my',userinfoRouter)
 
+app.use((err,req,res,next)=>{
+	if(err){
+		return res.send({code:500,message:err.message})
+	}
+	if(err.name === 'UnauthorizedError') return res.send({code:401,message:'身份认证失败'})
+})
 
 app.listen(8848,()=>{
 	console.log('runnning at 8848')
