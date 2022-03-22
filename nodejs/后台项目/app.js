@@ -16,12 +16,18 @@ app.use(expressJWT({
 }).unless({
 	path: [/^\/api\//] 
 }))
-
+//路由
 const userRouter = require('./router/user')
 app.use('/api',userRouter)
 
 const userinfoRouter = require('./router/userinfo')
 app.use('/my',userinfoRouter)
+
+const articlecate = require('./router/articlecate')
+app.use('/my/article',articlecate)
+
+const articles = require('./router/articles')
+app.use('/article',articles)
 
 app.use((err,req,res,next)=>{
 	if(err){

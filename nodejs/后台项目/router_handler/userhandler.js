@@ -5,10 +5,16 @@ const jwt = require('jsonwebtoken')
 
 exports.reUser = (req, res) => {
 	const userinfo = req.body
-	if (!userinfo.username || !userinfo.password) {
+	if (userinfo.username.length<5 || userinfo.password.length<6) {
 		return res.send({
 			code: 1001,
 			message: '用户名或密码不合法'
+		})
+	}
+	if (userinfo.nickname.length<1) {
+		return res.send({
+			code: 1001,
+			message: '昵称不合法'
 		})
 	}
 	const sql = 'select * from user where username = ?'
@@ -28,7 +34,6 @@ exports.reUser = (req, res) => {
 		//调用bcryptjs的hashSync()对密码进行加密
 		userinfo.password = bcrypt.hashSync(userinfo.password, 10);
 		const insertsql = 'insert into user set ?';
-		userinfo.status = 1
 		db.query(insertsql, userinfo, (err, result) => {
 			if (err) {
 				return res.send({
@@ -53,7 +58,7 @@ exports.reUser = (req, res) => {
 const secretKey = 'kukiqwq55'
 exports.login = (req, res) => {
 	let userinfo = req.body
-	const sqlStr = 'select * from user where username = ?'
+	const sqlStr = 'select * from user where username = ? and status = 1'
 	//查询数据库
 	db.query(sqlStr, userinfo.username, (err, result) => {
 		if (err) {
@@ -77,7 +82,8 @@ exports.login = (req, res) => {
 		//生成token
 		const tokenStr = jwt.sign({
 			id: result[0].id,
-			username: result[0].username
+			username: result[0].username,
+			nickname:result[0].nickname
 		}, secretKey, {
 			expiresIn: '24h'
 		})
