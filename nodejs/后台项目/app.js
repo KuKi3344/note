@@ -24,7 +24,7 @@ const userinfoRouter = require('./router/userinfo')
 app.use('/my',userinfoRouter)
 
 const articlecate = require('./router/articlecate')
-app.use('/my/article',articlecate)
+app.use('/category',articlecate)
 
 const articles = require('./router/articles')
 app.use('/article',articles)

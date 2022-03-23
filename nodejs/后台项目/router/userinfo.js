@@ -10,4 +10,8 @@ router.post('/updateinfo',userinfohandler.updateinfo)
 router.post('/updatepwd',userinfohandler.updatepwd)
 //更换头像
 router.post('/update/avatar',userinfohandler.updateavatar)
+//查询我的草稿
+router.get('/article/nopub',userinfohandler.getnopub)
+//获取你本月文章数目和本月新增文章数
+router.get('/article/month',userinfohandler.getmonthcount)
 module.exports = router
