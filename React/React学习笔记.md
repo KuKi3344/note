@@ -132,3 +132,157 @@ setInterval(tick, 1000);
 >**React 只会更新必要的部分**
 >
 >值得注意的是 React DOM 首先会比较元素内容先后的不同，而在渲染过程中只会更新改变了的部分。
+
+### React JSX
+
+React使用JSX来代替常规的JavaScript。
+
+JSX是一个看起来很像XML的JavaScript对语法扩展。
+
+我们不需要一定使用JSX，但它有以下优点：
+
+- JSX执行更快，因为他在编译为JavaScript代码后进行了优化
+- 它是类型安全的，在编译过程中就能发现错误
+- 使用JSX编写模板更加简单快速
+
+如下：
+
+```jsx
+const element = <h1>hello world!</h1>;
+```
+
+这种看起来可能有些奇怪的标签语法既不是字符串也不是HTML，它就被称为JSX，一种JavaScript的语法扩展。在React中推荐使用JSX来描述用户节面，JSX实在JavaScript内部实现的。
+
+元素是构成React应用的最小单位，JSX就是用来声明React当中的元素的。与浏览器的DOM元素不同，React当中的元素事实上是普通的对象，React DOM可以确保浏览器DOM的数据内容与React元素保持一致。
+
+要将React元素渲染到根DOM节点中，我们通过把它们都传递给ReactDOM.render()的方法来将其渲染到页面上
+
+```jsx
+var mydivelement = <div className="foo"/>;
+ReactDOM.render(
+  mydivelement,
+  document.getElementById('example')
+);
+```
+
+>注意:
+>
+>由于 JSX 就是 JavaScript，一些标识符像 `class` 和 `for` 不建议作为 XML 属性名。作为替代，React DOM 使用 `className` 和 `htmlFor` 来做对应的属性。
+
+#### 使用JSX
+
+**JSX**看起来类似HTML，我们可以看以下实例：
+
+```jsx
+ReactDOM.render(
+	<h1>Hello world!</h1>,
+	document.getElementById('example')
+);
+```
+
+我们可以在以上代码中嵌套多个HTML标签，需要使用一个div元素包裹它，实例中的p元素添加了自定义属性`data-myattribute`,添加自定义属性需要使用`data-`前缀
+
+```jsx
+ReactDOM.render(
+    <div>
+    <h1>菜鸟教程</h1>
+    <h2>欢迎学习 React</h2>
+    <p data-myattribute = "somevalue">这是一个很不错的 JavaScript 库!</p>
+    </div>
+    ,
+    document.getElementById('example')
+);
+```
+
+#### 独立文件
+
+React JSX代码可以放在一个独立文件上，例如创建一个hello.js文件，代码如下：
+
+```react
+ReactDOM.render(
+	<h1>hello world!</h1>,
+	document.getElementById('example')
+);
+```
+
+然后在HTML文件中引入该JS文件：
+
+```html
+<body>
+  <div id="example"></div>
+<script type="text/babel" src="helloworld_react.js"></script>
+</body>
+```
+
+#### JavaScript 表达式
+
+我们可以在JSX中使用JavaScript表达式。表达式写在花括号{}中。示例如下：
+
+```react
+ReactDOM.render(
+    <div>
+      <h1>{1+1}</h1>
+    </div>
+    ,
+    document.getElementById('example')
+);
+```
+
+在JSX中不能使用`if else`语句，但是可以使用三元运算表达式来替代。以下实例中如果变量i等于1，浏览器将输出true，如果修改i的值，则会输出false。
+
+```react
+ReactDOM.render(
+    <div>
+      <h1>{i == 1 ? 'True!' : 'False'}</h1>
+    </div>
+    ,
+    document.getElementById('example')
+);
+```
+
+#### 样式
+
+React推荐使用内联样式。我们可以使用三元运算表达式语法来设置内联样式，React会在指定元素数字后自动添加px。以下实例演示了为h1元素添加**myStyle**内联样式:
+
+```react
+var myStyle = {
+    fontSize: 100,
+    color: '#FF0000'
+};
+ReactDOM.render(
+    <h1 style = {myStyle}>菜鸟教程</h1>,
+    document.getElementById('example')
+);
+```
+
+#### 注释
+
+注释需要写在花括号中，实例如下：
+
+```react
+ReactDOM.render(
+    <div>
+    <h1>菜鸟教程</h1>
+    {/*注释...*/}
+     </div>,
+    document.getElementById('example')
+);
+```
+
+#### 数组
+
+JSX允许在模板中插入数组，数组会自动展开所有成员：
+
+```react
+var arr = [
+  <h1>菜鸟教程</h1>,
+  <h2>学的不仅是技术，更是梦想！</h2>,
+];
+ReactDOM.render(
+  <div>{arr}</div>,
+  document.getElementById('example')
+);
+```
+
+
+
