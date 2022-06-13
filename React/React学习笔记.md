@@ -1,4 +1,4 @@
-## React学习笔记
+##   React学习笔记
 
 ### 环境安装与项目创建
 
@@ -23,6 +23,8 @@ npm config set registry https://registry.npm.taobao.org
     create-react-app my-react
 
 至此，使用reract脚手架完成一个react项目的新建
+
+之后，终端输入`npm start`即可启动React项目
 
 ### 元素渲染
 
@@ -284,5 +286,89 @@ ReactDOM.render(
 );
 ```
 
+### React组件
 
+1.首先我们试着封装一个输出"Hello World！"的组件，组件名为HelloMessage：
 
+```react
+function HelloMessage(props){
+	return <h1>Hello World!</h1>;
+}
+const element= <HelloMessage />;
+ReactDOM.render(
+	element,
+	document.getElementById('example')
+);
+```
+
+**实例解析：**
+
+首先我们用函数定义了一个组件：
+
+```react
+function HelloMessage(props){
+	return <h1>Hello World!</h1>;
+}
+```
+
+我们也可以使用ES6 class来定义一个组件：
+
+```react
+class Welcome extends React.Component{
+	render(){
+		return <h1>Hello World!</h1>;
+	}
+}
+```
+
+2.`const element = <HelloMessage />`为用户自定义的组件。
+
+>注意，原生 HTML 元素名以小写字母开头，而自定义的 React 类名以大写字母开头，比如 HelloMessage 不能写成 helloMessage。除此之外还需要注意组件类只能包含一个顶层标签，否则也会报错。
+
+ 此外，如果我们需要向组件传递参数，可以使用`this.props`  对象，实例如下：
+
+```react
+function HelloMessage(props){
+	return <h1>Hello World!</h1>;
+}
+const element = <HelloMessage name="Runoob" />;
+ReactDOM.render(
+	element,
+	document.getElementById('example');
+)
+```
+
+以上实例中 **name** 属性通过 **props.name** 来获取。
+
+> 注意，在添加属性时， class 属性需要写成 className ，for 属性需要写成 htmlFor ，这是因为 class 和 for 是 JavaScript 的保留字。
+
+####  复合组件
+
+ 我们可以通过创建多个组件来合成一个组件，即把组件的不同功能点进行分离。
+
+以下实例我们实现了输出网站名字和网址的组件：
+
+```react
+function Name(props){
+	return <h1>网站名称：{props.name}</h1>;
+}
+function Url(props){
+	return <h1>网站地址：{props.url}</h1>; 
+}
+function Nickname(props){
+	return <h1>网站别名：{props.nickname}</h1>
+}
+function App(){
+	return(
+		<div>
+			<Name name="菜鸟教程" />
+			<Url url = "http://www.runoob.com" />
+			<Nickname nickname="Runoob" />
+		</div>
+	);
+}
+ReactDOM.render(
+	<App />,
+	document.getElementById('example')
+)；
+```
