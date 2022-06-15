@@ -58,6 +58,17 @@ ReactDOM.render(
 );
  ```
 
+React18的版本中，需要写成如下，否则会在控制台报错
+
+```react
+// import React from 'react'
+import ReactDOM from 'react-dom/client'; 
+
+ReactDOM.createRoot(document.getElementById('root')).render(<div><b>wo</b></div>);
+```
+
+
+
 #### 更新元素渲染
 
 React元素都是不可变的，当元素被创建之后，你是无法改变其内容或属性的。
@@ -172,6 +183,31 @@ vue 组件响应式思想 采用代理监听数据，我在某个组件里修改
 React Fiber 是 React 16 中新的协调引擎，是对核心算法的一次重新实现。**那为什么要重写新的Fiber架构呢？**
 
 在 React 16 以前，当元素较多，需要频繁刷新的时候页面会出现卡顿，究其原因是因为更新过程是同步的，大量的同步计算任务阻塞了浏览器的渲染。
+
+当页面加载或者更新时，React 会去计算和比对 Virtual DOM，最后绘制页面，整个过程是同步进行的。当 JavaScript 在浏览器的主线程上长期运行，就会阻塞了样式计算、布局和绘制，导致页面无法得到及时的更新和响应。此时，无论用户如何点击鼠标或者敲击键盘都不会得到响应，当 React 更新完成后刚刚点击或敲击的事件才会得到响应。
+
+由于 JavaScript 是单线程的特点，所以一个线程执行完成后才会执行下一个线程，当上一个线程任务耗时太长，程序就会对其他输入不作出响应。
+
+React 的更新过程会先计算，一旦任务开始进行，就无法中断， js 将一直占用主线程， 直到整棵 Virtual DOM 树计算完成之后，才能把执行权交给渲染引擎，而 React Fiber 就是要改变现状。
+
+##### fiber的优势
+
+- 增量渲染
+- 为不同任务分配优先极
+- 更新时能暂停、终止、复用渲染任务
+- 并发方面新的能力
+
+Fiber 把耗时长的任务拆分成很多的小片，每个小片的运行时间很短，每次只执行一个小片，执行完后看是否还有剩余时间，如果有就继续执行下个小片，如果没有就挂起当前任务，将控制权交给 React 负责任务协调的模块，看有没有其他紧急任务要做，如果没有就继续更新当前任务，如果有紧急任务就去做紧急任务，等主线程不忙的时候在继续执行当前任务。
+
+>分片之后，每执行一段时间，都会将控制权交给主线程。
+
+这样唯一的线程不会被独占，其他任务依然有运行的机会。
+
+这种策略叫做 Cooperative Scheduling（合作式调度），操作系统常用任务调度策略之一。
+
+总而言之，我们了解到，Fiber 是一个最小工作单元，也是堆栈的重新实现，可以理解为是一个虚拟的堆栈帧。它将可中断的任务拆分成多个任务，通过优先级来自由调度子任务，分段更新，从而将之前的同步渲染改为异步渲染。
+
+而维护每一个分片的数据结构，就是 Fiber。
 
 ### JSX
 
@@ -323,6 +359,23 @@ ReactDOM.render(
   document.getElementById('example')
 );
 ```
+
+#### JSX的原理
+
+浏览器最终得到的并不是JSX而是JS代码，因为有Babel的JSX的编译器。若不使用JSX而是纯原生的JS该是怎么样的？（或者是JSX最终被编译成什么样子了）
+
+```react
+ReactDOM.render(React.createElement("div",{
+	id:'container',
+	className:"main"
+},"hello"),document.getElementById("root"))
+//以上等价于如下 React17的写法
+ReactDOM.render(<div>hello</div>,document.getElementById("root"))
+//React18的写法
+ReactDOM.createRoot(document.getElementById('root')).render("hello");
+```
+
+
 
 ### 组件
 
