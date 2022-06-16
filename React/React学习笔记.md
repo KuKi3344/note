@@ -1,4 +1,4 @@
-##   React学习笔记
+##   xReact学习笔记
 
 ### 环境安装与项目创建
 
@@ -297,7 +297,7 @@ ReactDOM.render(
 ```react
 ReactDOM.render(
     <div>
-      <h1>{1+1}</h1>
+      <h1 className="title">{1+1}</h1>
     </div>
     ,
     document.getElementById('example')
@@ -331,6 +331,41 @@ ReactDOM.render(
 );
 ```
 
+若是想直接把样式写到JSX代码里，要像如下，在{}模板内再加一个{}，代表对象
+
+```react
+export default class children extends React.Component {
+	render() {
+		var myname = "kuki"
+		return (
+			<div style={{background:"#99fff9"}}>
+				{10+30}- {myname}
+			</div>
+		)
+	}
+}
+```
+
+若想外部写CSS，和之前一样，建立一个css文件，在js中引入css模块
+
+```js
+import './css/index.css'
+```
+
+在React中，更推荐的是使用行内样式，因为React更觉得每一个组件都是一个独立的整体，都应该包含到一个组件内部。
+
+此外，若是内联样式，若是类似`font-size`这类中间带'-'连接两个单词的属性，要用驼峰命名法，比如`fontSize`、`backgroundColor`等。
+
+为了防止关键字问题（例如jsx中标签的class被当作创建类的class，JSX中class应当写作className，for应该写作htmlFor）
+
+```html
+<div className="active">333</div>
+<label htmlFor="username">用户名：</label>
+<input type="text" id="username"/>
+```
+
+用了htmlFor后，点击用户名label就自动聚焦到id为username的输入框了
+
 #### 注释
 
 注释需要写在花括号中，实例如下：
@@ -360,26 +395,57 @@ ReactDOM.render(
 );
 ```
 
+要注意，{}中间只能是表达式或者属性，不能是函数方法，因为不会执行，是没有意义的。但是如果写在onClick={}的大括号中是可以的，代表点击后执行这个函数。
+
 #### JSX的原理
 
-浏览器最终得到的并不是JSX而是JS代码，因为有Babel的JSX的编译器。若不使用JSX而是纯原生的JS该是怎么样的？（或者是JSX最终被编译成什么样子了）
+JSX将HTML语法直接加入到JS代码中，再通过翻译器转换到纯JavaScript后由浏览器执行，在实际开发中，JSX在产品打包阶段都已经编译成纯JavaScript，不会带来任何副作用，反而会让代码更加直观并易于维护。编译过程由Babel的JSX编译器实现。若不使用JSX而是纯原生的JS该是怎么样的？（或者是JSX最终被编译成什么样子了）
 
 ```react
 ReactDOM.render(React.createElement("div",{
 	id:'container',
 	className:"main"
 },"hello"),document.getElementById("root"))
-//以上等价于如下 React17的写法
+//以上等价于如下   
+//React17的写法
 ReactDOM.render(<div>hello</div>,document.getElementById("root"))
 //React18的写法
 ReactDOM.createRoot(document.getElementById('root')).render("hello");
 ```
 
-
-
 ### 组件
 
-1.首先我们试着封装一个输出"Hello World！"的组件，组件名为HelloMessage：
+```js
+import './component/class.js'
+```
+
+可以直接通过ES6语法引入组件的JS文件，引入后会自动执行。
+
+首先在class.js定义App组件
+
+```react
+import React from 'react'
+class App extends React.Component{
+	render(){
+		return <div>hello app conponent</div>
+	}
+}
+export default App
+```
+
+然后在index.js中引入App然后渲染到页面上
+
+```react
+import React from 'react'
+import ReactDOM from 'react-dom/client'; 
+import App from './component/class.js'
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+
+```
+
+1.我们试着封装一个输出"Hello World！"的组件，组件名为HelloMessage：
 
 ```react
 function HelloMessage(props){
@@ -394,7 +460,7 @@ ReactDOM.render(
 
 **实例解析：**
 
-首先我们用函数定义了一个组件：
+首先我们用函数定义了一个组件（函数式组件）：
 
 ```react
 function HelloMessage(props){
@@ -405,12 +471,25 @@ function HelloMessage(props){
 我们也可以使用ES6 class来定义一个组件：
 
 ```react
-class Welcome extends React.Component{
+class HelloMessage extends React.Component{
 	render(){
 		return <h1>Hello World!</h1>;
 	}
 }
 ```
+
+在项目中，要保证组件的创建方法一致，要么全为ES6类声明方式，要么全为函数式，且函数式建议写成箭头函数，因为箭头函数的this指向和外部作用域的this指向一致，不用担心this指向问题。
+
+```react
+const HelloMessage = ()=>{
+	render(){
+		return <h1>Hello World!</h1>;
+	}
+}
+const HelloMessage = () =><h1>Hello World!</h1>
+```
+
+
 
 2.`const element = <HelloMessage />`为用户自定义的组件。
 
@@ -435,7 +514,7 @@ ReactDOM.render(
 
 ####  复合组件
 
- 我们可以通过创建多个组件来合成一个组件，即把组件的不同功能点进行分离。
+我们可以通过创建多个组件来合成一个组件，即把组件的不同功能点进行分离。
 
 以下实例我们实现了输出网站名字和网址的组件：
 
@@ -458,10 +537,58 @@ function App(){
 		</div>
 	);
 }
-ReactDOM.render(
-	<App />,
-	document.getElementById('example')
-)；
+ReactDOM.createRoot(document.getElementById('example')).render(<App/>);
+```
+
+以下我们模拟页面的布局
+
+```react
+//index.js
+import React from 'react'
+import ReactDOM from 'react-dom/client'; 
+
+class App extends React.Component{
+	render(){
+		return(
+			<div>
+				<Navbar />
+				<Swiper />
+				<Tabbar />
+			</div>
+		)
+	}
+}
+
+class Navbar extends React.Component{
+	render(){
+		return(
+			<div>
+				navbar
+			</div>
+		)
+	}
+}
+
+class Swiper extends React.Component{
+	render(){
+		return(
+			<div>
+				swiper
+			</div>
+		)
+	}
+}
+
+class Tabbar extends React.Component{
+	render(){
+		return(
+			<div>
+				tabbar
+			</div>
+		)
+	}
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 ```
 
 ### State(状态)
@@ -934,4 +1061,46 @@ MyComponent.propTypes = {
 }
 ```
 
-  
+###  事件处理
+
+如下这种是将方法放在onClick里面定义
+
+```react
+import React, { Component } from 'react'
+
+export default class List extends Component {
+	render() {
+		return (
+			<div>
+				<input />
+				<button onClick={()=>{
+					console.log('click')
+				}}>add</button>
+			</div>
+		)
+	}
+}
+```
+
+或者外部定义
+
+```react
+import React, { Component } from 'react'
+
+export default class List extends Component {
+	render() {
+		return (
+			<div>
+				<input />
+				<button onClick={ this.handleClick }>add</button>
+			</div>
+		)
+	}
+	handleClick(){
+		console.log("click")
+	}
+}
+```
+
+ **注：**{}引用的函数后千万不能加小括号()，否则就会立即执行，还没点击按钮就执行，而且函数名前要加this.
+

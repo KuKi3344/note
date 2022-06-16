@@ -1,6 +1,15 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'; 
-import App from './component/class.js'
+import List from './component/todolist.js'
 
+class App extends React.Component{
+	render(){
+		return(
+			<div>
+				<List />
+			</div>
+		)
+	}
+}
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 
