@@ -675,10 +675,7 @@ class Clock extends React.Component {
   }
 }
  
-ReactDOM.render(
-  <Clock />,
-  document.getElementById('example')
-);
+ReactDOM.createRoot(document.getElementById('example')).render(<Clock />);
 ```
 
 **实例解析：**
@@ -753,10 +750,7 @@ class Clock extends React.Component {
   }
 }
  
-ReactDOM.render(
-  <Clock />,
-  document.getElementById('example')
-);
+ReactDOM.createRoot(document.getElementById('example')).render(<Clock />);
 ```
 
 这通常被称为**自顶向下或单向数据流。** 任何状态始终由某些特定组件所有，并且从该状态导出的任何数据或 UI 只能影响树中下方的组件。
@@ -772,6 +766,8 @@ class Counter extends Component {
     constructor(props) {  //初始化
         super(props);
         this.handleClick = this.handleClick.bind(this);
+            //这里要绑定this指向的原因在事件处理部分已解答
+
         this.state = {
             count: 0,
         };
@@ -845,7 +841,7 @@ function App() {
   );
 }
  
-ReactDOM.render(<App />, document.getElementById('example'));
+ReactDOM.createRoot(document.getElementById('example')).render(<App />);
 ```
 
 以上实例中每个 Clock 组件都建立了自己的定时器并且独立更新。
@@ -873,10 +869,7 @@ function HelloMessage(props) {
  
 const element = <HelloMessage name="Runoob"/>;
  
-ReactDOM.render(
-    element,
-    document.getElementById('example')
-);
+ReactDOM.createRoot(document.getElementById('example')).render(element);
 ```
 
 #### 默认Props
@@ -898,10 +891,7 @@ HelloMessage.defaultProps = {
  
 const element = <HelloMessage/>;
  
-ReactDOM.render(
-  element,
-  document.getElementById('example')
-);
+ReactDOM.createRoot(document.getElementById('example')).render(element);
 ```
 
 #### state和Props
@@ -948,10 +938,7 @@ class Link extends React.Component {
   }
 }
  
-ReactDOM.render(
-  <WebSite />,
-  document.getElementById('example')
-);
+ReactDOM.createRoot(document.getElementById('example')).render(WebSite);
 ```
 
 #### Props验证
@@ -976,10 +963,7 @@ class MyTitle extends React.Component {
 MyTitle.propTypes = {
   title: PropTypes.string
 };
-ReactDOM.render(
-    <MyTitle title={title} />,
-    document.getElementById('example')
-);
+ReactDOM.createRoot(document.getElementById('example')).render(<MyTitle title={title} />);
 ```
 
 或写成如下：
@@ -996,10 +980,7 @@ var MyTitle = React.createClass({
      return <h1> {this.props.title} </h1>;
    }
 });
-ReactDOM.render(
-    <MyTitle title={title} />,
-    document.getElementById('example')
-);
+ReactDOM.createRoot(document.getElementById('example')).render(<MyTitle title={title} />);
 ```
 
  更多验证器说明如下：
@@ -1082,7 +1063,7 @@ export default class List extends Component {
 }
 ```
 
-或者外部定义
+**或者外部定义**
 
 ```react
 import React, { Component } from 'react'
@@ -1104,3 +1085,101 @@ export default class List extends Component {
 
  **注：**{}引用的函数后千万不能加小括号()，否则就会立即执行，还没点击按钮就执行，而且函数名前要加this.
 
+**再或者写成这样**
+
+```react
+<button onClick={ ()=>this.handleClick() }>add</button>
+```
+
+利用箭头函数的方式写，当点击后触发箭头函数，箭头函数中立即调用方法。
+
+如上三种方法都可以 绑定事件，但是有一些区别，就是this指向的不同。
+
+比如利用箭头函数绑定方法虽然看起来必要性不大，写起来没有直接绑定外部定义的方法简便，但是它有一点好处，就是this指向始终和外部一致，即和render函数一致，当你想要在`onClick`事件中，打印App组件（类）的某一个属性，比如this.a，利用箭头函数就不用考虑this指向是否正确的问题。
+
+```react
+export default class List extends Component{
+    a=100;
+	render() {
+		return (
+<button onClick={ ()=>{console.log(this.a)} }>add</button>
+      )
+    }
+}
+```
+
+比如上面这个例子，利用箭头函数就不用考虑a会找不到的问题，可以正确打印出100，为访问状态打好了基础。
+
+但如果不使用箭头函数，且想要访问a属性，直接`onClick={ this.handleClick}`就会在控制台报错，如下
+
+```react
+export default class List extends Component {
+	a = 100
+	render() {
+		return (
+			<div>
+				<input />
+				<button onClick={ this.handleClick }>add</button>
+			</div>
+		)
+	}
+	handleClick(){
+		console.log("click",this.a)
+	}
+}
+```
+
+![image-20220617112433922](React%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.assets/image-20220617112433922.png)
+
+然后我们试着在handleClick方法中，打印一下它的this指向
+
+```react
+handleClick(){
+		console.log("click",this)
+	}
+```
+
+结果如下
+
+![image-20220617112605524](React%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.assets/image-20220617112605524.png)
+
+所以上面报错便可以解释了，this指向当前是undefined，当然读取不了a属性，连this指向都undefined，怎么读取this.a呢?
+
+那这种方法怎么让它的this指向指向这个App实例呢？
+
+我们需要用到bind来**修正指向**。
+
+```react
+export default class List extends Component {
+	a = 100
+	render() {
+		return (
+			<div>
+				<input />
+				<button onClick={ this.handleClick.bind(this)}>add</button>
+			</div>
+		)
+	}
+	handleClick(){
+		console.log("click",this)
+	}
+}
+```
+
+这时我们就能发现，this已经指向这个App实例了，就解决了this指向的问题。
+
+**注：**不能使用apply或者call来改变this指向，因为使用apply和call改变指向后会直接调用此方法，而我们需要的只是绑定指向，不是直接调用，就好比之前不加()一样，让它触发事件后再调用方法而不是直接调用。
+
+**综上所述**，我们推荐第一种或者第三种写法（箭头函数）,当逻辑过多时，使用第三种，逻辑较少时写成第一种。我们不推荐第二种写法，因为这种写法需要bind来修正this指向问题。
+
+**React的事件绑定和原生的事件绑定有什么区别呢？**
+
+在React中，并不会真正的绑定事件到每一个具体的DOM节点（元素）上，因为绑定在每一个DOM上是比较消耗内存的，它采用的是事件代理的模式。
+
+#### event对象
+
+和普通浏览器一样，事件handler会被自动传入一个event对象，这个对象和普通的浏览器event对象所包含的方法和属性都基本一致，不同的是React中的event对象并不是浏览器提供的，而是它自己内部所构建的。它同样具有`event.stopPropagation`、`event.preventDefault`这种常用方法。
+
+**提示：**`event.stopPropagation`方法是用来**阻止当前事件在DOM树上冒泡**。使用stopPropagation()函数可以阻止当前事件向祖辈元素的冒泡传递，也就是说该事件不会触发执行当前元素的任何祖辈元素的任何事件处理函数。
+
+该函数只阻止事件向祖辈元素的传播，不会阻止该元素自身绑定的其他事件处理函数的函数。`event.preventDefault()`方法是用于取消事件的默认行为，例如，当点击提交按钮时阻止对表单的提交。但此方法并不被ie支持，在ie下需要用`window.event.returnValue = false; `来实现。
