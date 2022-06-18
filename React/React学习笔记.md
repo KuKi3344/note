@@ -1,4 +1,4 @@
-##   xReact学习笔记
+##    xReact学习笔记
 
 ### 环境安装与项目创建
 
@@ -591,6 +591,50 @@ class Tabbar extends React.Component{
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 ```
 
+### ref的应用
+
+若是直接获取`this.refs.mytext`获取到的就是`input`标签，所以需要再加个`.value`，才会获取到输入的值（用起来和vue的`this.$refs.xxx`差不多,只是少了一个`$`符号）。利用给定ref的属性，再在下面通过 `this.refs.xxx`来获取元素,拿到输入框的value值。（不过在ts中refs将被弃用）
+
+```react
+export default class List extends Component {
+	a = 100
+	render() {
+		return (
+			<div>
+				<input ref="mytext"/>
+				<button onClick={()=>this.handleClick()}>add</button>
+			</div>
+		)
+	}
+	handleClick(){
+		console.log("click",this.a,this.refs.mytext.value)
+	}
+}
+```
+
+给标签设置`ref="username"`,通过这个获取`this.refs.username`,ref可以获取到应用的真实dom。
+
+给组件设置`ref="username"`，通过这个获取`this.refs.username`,ref可以获取到组件对象
+
+由于这种方案将被弃用，所以用第二种方案,这种写法是比较推荐的。
+
+```react
+export default class List extends Component {
+	mytext = React.createRef()
+	render() {
+		return (
+			<div>
+				<input ref={this.mytext}/>
+				<button onClick={()=>this.handleClick()}>add</button>
+			</div>
+		)
+	}
+	handleClick(){
+		console.log("click",this.mytext.current.value)
+	}
+}
+```
+
 ### State(状态)
 
 React 把组件看成是一个状态机（State Machines）。通过与用户的交互，实现不同状态，然后渲染 UI，让用户界面和数据保持一致。
@@ -624,8 +668,6 @@ ReactDOM.render(
 );
 
 ```
-
-
 
 个人认为，作用方面来说，React的State的作用和Vue的data的作用是一致的，概念上称他们为“状态”，但是其实现与用法不同，React更新状态是通过setState方法，vue里面是使用赋值操作符。vue是双向数据绑定，React是向下传递数据，Vue，当你把一个普通的 JavaScript 对象传给 Vue 实例的`data`选项，Vue 将遍历此对象所有的属性，并使用`Object.defineProperty`把这些属性全部转为`getter/setter`。从而实现响应式。React，是通过setState函数来更改属性，而setState函数是异步的，接受一个回调函数。
 
@@ -708,7 +750,7 @@ state与props是React组件中最重要的概念。如果顶层组件初始化pr
 
 这就是为什么状态通常被称为局部或封装。 除了拥有并设置它的组件外，其它组件不可访问。
 
-vue也是单向数据流，父组件可以向子组件传递props，但是子组件不能修改父组件传递来的props，子组件只能通过事件通知（emit）父组件进行数据更改。因为当父组件 可能存在多个子组件,假如子组件可以修改父组件的数据,那么会导致其他依赖父组件的子组件都会受到影响。这样可以防止从子组件意外改变父及组件的状态,从而导致你的应用的数据流向难以理解。
+**vue也是单向数据流，**父组件可以向子组件传递props，但是子组件不能修改父组件传递来的props，子组件只能通过事件通知（emit）父组件进行数据更改。因为当父组件 可能存在多个子组件,假如子组件可以修改父组件的数据,那么会导致其他依赖父组件的子组件都会受到影响。这样可以防止从子组件意外改变父及组件的状态,从而导致你的应用的数据流向难以理解。
 
 以下实例中 FormattedDate 组件将在其属性中接收到 date 值，并且不知道它是来自 Clock 状态、还是来自 Clock 的属性、亦或手工输入：  
 
@@ -851,6 +893,20 @@ ReactDOM.createRoot(document.getElementById('example')).render(<App />);
 我们可以在有状态组件中使用无状态组件，也可以在无状态组件中使用有状态组件。
 
 state是用来管理组件自身内部状态的。当组件内部使用库内置的setState方法时，最大的表现行为就是该组件会尝试重新渲染。这很好理解，因为我们改变了内部状态，组件需要更新了。
+
+**React函数式组件是利用hooks有了自己的状态（从React 16.7后），它们使我们无需编写类即可使用状态和其他React功能**
+
+### hooks
+
+#### hooks 的优势是什么
+
+- 简化组件逻辑
+- 复用状态逻辑
+- 使用了无状态组件，但又需要状态时
+
+#### 常用 hooks
+
+**useState、useEffect、useRef**
 
 ### props
 
