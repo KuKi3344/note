@@ -639,6 +639,8 @@ export default class List extends Component {
 
 React 把组件看成是一个状态机（State Machines）。通过与用户的交互，实现不同状态，然后渲染 UI，让用户界面和数据保持一致。
 
+`this.state`是纯js对象，在vue中，data属性是利用`object.defineProperty`处理过的，更改data的数据的时候会触发数据的getter和setter，但是React中没有做这样的处理，如果直接更改的话，react是无法得知的，所以，需要使用特殊的更改状态的方法setState。
+
 React 里，只需更新组件的 state，然后根据新的 state 重新渲染用户界面（不要操作 DOM）。
 
 以下实例创建一个名称扩展为 React.Component 的 ES6 类，在 render() 方法中使用 this.state 来修改当前的时间。
@@ -671,7 +673,56 @@ ReactDOM.render(
 
 个人认为，作用方面来说，React的State的作用和Vue的data的作用是一致的，概念上称他们为“状态”，但是其实现与用法不同，React更新状态是通过setState方法，vue里面是使用赋值操作符。vue是双向数据绑定，React是向下传递数据，Vue，当你把一个普通的 JavaScript 对象传给 Vue 实例的`data`选项，Vue 将遍历此对象所有的属性，并使用`Object.defineProperty`把这些属性全部转为`getter/setter`。从而实现响应式。React，是通过setState函数来更改属性，而setState函数是异步的，接受一个回调函数。
 
-接下来，我们将使Clock设置自己的计时器并每秒更新一次。
+简单练习：
+
+```react
+export default class App extends Component {
+	state = {
+		show:true
+	}
+	render() {
+		return (
+			<div>
+				<button onClick={()=>{
+					this.setState({
+						show:!this.state.show
+					})
+				}}>{this.state.show?"收藏":"取消收藏"}</button>
+			</div>
+		)
+	}
+}
+
+```
+
+或者写成如下：
+
+```react
+export default class App extends Component {
+	// state = {
+	// 	show:true
+	// }
+	constructor() {
+	    super()
+		this.state = {
+			show:true
+		}
+	}
+	render() {
+		return (
+			<div>
+				<button onClick={()=>{
+					this.setState({
+						show:!this.state.show
+					})
+				}}>{this.state.show?"收藏":"取消收藏"}</button>
+			</div>
+		)
+	}
+}
+```
+
+`super()`一定要有，因为是继承`React.Component`，所以要通过`super`把之前的组件类的属性继承过来。
 
 #### 将生命周期方法添加到类中
 
