@@ -616,7 +616,7 @@ export default class List extends Component {
 
 给组件设置`ref="username"`，通过这个获取`this.refs.username`,ref可以获取到组件对象
 
-由于这种方案将被弃用，所以用第二种方案,这种写法是比较推荐的。
+由于这种方案将被弃用，所以用**第二种方案**,这种写法是比较推荐的。
 
 ```react
 export default class List extends Component {
@@ -673,19 +673,22 @@ ReactDOM.render(
 
 个人认为，作用方面来说，React的State的作用和Vue的data的作用是一致的，概念上称他们为“状态”，但是其实现与用法不同，React更新状态是通过setState方法，vue里面是使用赋值操作符。vue是双向数据绑定，React是向下传递数据，Vue，当你把一个普通的 JavaScript 对象传给 Vue 实例的`data`选项，Vue 将遍历此对象所有的属性，并使用`Object.defineProperty`把这些属性全部转为`getter/setter`。从而实现响应式。React，是通过setState函数来更改属性，而setState函数是异步的，接受一个回调函数。
 
-简单练习：
+**简单练习：**
 
 ```react
 export default class App extends Component {
 	state = {
-		show:true
+		show:true,
+         name:'kuki'
 	}
 	render() {
 		return (
 			<div>
+                <h1>{this.state.name}</h1>
 				<button onClick={()=>{
 					this.setState({
-						show:!this.state.show
+					    show:!this.state.show,
+                          name:'xiaohong'
 					})
 				}}>{this.state.show?"收藏":"取消收藏"}</button>
 			</div>
@@ -695,7 +698,7 @@ export default class App extends Component {
 
 ```
 
-或者写成如下：
+**或者写成如下：**
 
 ```react
 export default class App extends Component {
@@ -705,15 +708,18 @@ export default class App extends Component {
 	constructor() {
 	    super()
 		this.state = {
-			show:true
+			show:true,
+             name:'kuki'
 		}
 	}
 	render() {
 		return (
 			<div>
+                 <h1>{this.state.name}</h1>
 				<button onClick={()=>{
 					this.setState({
-						show:!this.state.show
+						show:!this.state.show,
+                           name:'xiaoming'
 					})
 				}}>{this.state.show?"收藏":"取消收藏"}</button>
 			</div>
@@ -724,7 +730,119 @@ export default class App extends Component {
 
 `super()`一定要有，因为是继承`React.Component`，所以要通过`super`把之前的组件类的属性继承过来。
 
-#### 将生命周期方法添加到类中
+**如果state中的某个值是数组该如何渲染呢？**
+
+#### State中的数组
+
+React不会把已经有的可以使用的原生方法再给你封装一次，所以在渲染循环列表时，需要用到原生的`map()`方法。
+
+```react
+export default class List extends Component {
+	constructor() {
+	    super()
+		this.state = {
+			list:["zhangsan","lisi","wangwu"]
+		}
+	}
+	render() {
+		return (
+			<div>
+				<ul>{
+					this.state.list.map(item=><li>{item}</li>)
+				}</ul>
+			</div>
+		)
+	}
+}
+```
+
+**或者这么写(之前已经说过JSX中数组的渲染方法了)**
+
+```react
+export default class List extends Component {
+	constructor() {
+	    super()
+		this.state = {
+			list:["zhangsan","lisi","wangwu"]
+		}
+	}
+	render() {
+		var newlist = this.state.list.map(item=><li>{item}</li>)
+		return (
+			<div>
+				<ul>{newlist}</ul>
+			</div>
+		)
+	}
+}
+```
+
+但是这时看控制台，发现报错了，提示没有key。
+
+通过之前的vue的学习，我们可以知道，key是唯一的标识，在进行diff的时候，通过比对元素的key值，来辨认是否是同一节点，可以更高效的更新VDOM，减少不必要的元素更新，所以要确保每个节点key值都不同，每个key值都是独一无二的。
+
+key也不能用索引，因为如果进行删除操作，那么从这条数据开始后的所有数据索引都会变化。那么diff就会计算出后面的item的key-index映射都发生了变化,就会全部重新渲染,大大影响了性能。而且这也会导致一些bug,比如当删除了item2的时候,再选中item3就会变成选中item4。”
+
+**将ref的应用和上面的混合应用一下实现记录的增加与删除的功能**
+
+```react
+export default class List extends Component {
+	constructor(){
+		super()
+		this.mytext = React.createRef()
+		this.state = {
+			list:[{
+					id:1,
+					text:"zhangsan"
+				},
+				{
+						id:2,
+						text:'wanglu'
+				},
+				{
+						id:3,
+						text:"lisi"
+				}]
+		}
+	}
+	render() {
+		return (
+			<div>
+				<input ref={this.mytext}/>
+				<button onClick={()=>this.add()}>add</button>
+				<ul>
+				{this.state.list.map((item,index)=><li key={item.id}>{item.text} <button onClick={()=>this.delete(index)}>delete</button></li>)}
+				</ul>
+			</div>
+		)
+	}
+	add(){
+		let newlist = this.state.list
+		newlist.push({
+			id:Date.now(),
+			text:this.mytext.current.value})
+		this.setState({
+			list:newlist
+		})
+		this.mytext.current.value=""
+	}
+	delete(index){
+		let newlist = this.state.list
+		newlist.splice(index,1)
+		this.setState({
+			list:newlist
+		})
+	}
+}
+```
+
+React不建议直接修改state的值，因为可能会造成不能预料的问题，所以克隆一个新的数组，然后修改这个新的数组的值，最后通过setState修改状态。
+
+此外关于slice的补充：
+
+![image-20220619214657378](React%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.assets/image-20220619214657378.png)
+
+#### 资源的挂载与卸载
 
 在具有许多组件的应用程序中，在销毁时释放组件所占用的资源非常重要。
 
