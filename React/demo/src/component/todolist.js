@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-
+import '../css/index.css'
 export default class List extends Component {
 	constructor(){
 		super()
@@ -27,6 +27,7 @@ export default class List extends Component {
 				<ul>
 				{this.state.list.map((item,index)=><li key={item.id}>{item.text} <button onClick={()=>this.delete(index)}>delete</button></li>)}
 				</ul>
+				<div className={this.state.list.length<1 ? '':'hidden'}>暂无待办事项</div>
 			</div>
 		)
 	}

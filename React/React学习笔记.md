@@ -1,4 +1,4 @@
-##    xReact学习笔记
+##    React学习笔记
 
 ### 环境安装与项目创建
 
@@ -397,6 +397,24 @@ ReactDOM.render(
 
 要注意，{}中间只能是表达式或者属性，不能是函数方法，因为不会执行，是没有意义的。但是如果写在onClick={}的大括号中是可以的，代表点击后执行这个函数。
 
+#### 关于JSX大括号插入富本文
+
+```JSX
+<div>{this.state.text}</div>}
+```
+
+就比如如上这种，如果text是用户在输入框输入的，里面输入了一些例如`<b>111</b>`,那么显示到页面上的是什么呢？显而易见，显示的是`<b>111</b>`而不是只有加粗过后的111，React为了保证安全性，防止xss攻击，是把所有当成文本插入的，而不是HTML代码。但我们可以通过`dangerouslySetInnerHTML`来让它当作HTML代码插入。
+
+```jsx
+<span dangerouslySetInnerHTML={
+        {
+            __html:item.mytext
+        }
+    }></span>
+```
+
+此时，若输入`<b>111</b>`插入到span中，显示的就是加粗后的111,插入的是HTML代码。但是这样很危险，所以很少会用到。
+
 #### JSX的原理
 
 JSX将HTML语法直接加入到JS代码中，再通过翻译器转换到纯JavaScript后由浏览器执行，在实际开发中，JSX在产品打包阶段都已经编译成纯JavaScript，不会带来任何副作用，反而会让代码更加直观并易于维护。编译过程由Babel的JSX编译器实现。若不使用JSX而是纯原生的JS该是怎么样的？（或者是JSX最终被编译成什么样子了）
@@ -783,7 +801,7 @@ export default class List extends Component {
 
 key也不能用索引，因为如果进行删除操作，那么从这条数据开始后的所有数据索引都会变化。那么diff就会计算出后面的item的key-index映射都发生了变化,就会全部重新渲染,大大影响了性能。而且这也会导致一些bug,比如当删除了item2的时候,再选中item3就会变成选中item4。”
 
-**将ref的应用和上面的混合应用一下实现记录的增加与删除的功能**
+**将ref的应用和上面的混合应用一下实现记事本记录的增加与删除的功能**
 
 ```react
 export default class List extends Component {
@@ -836,11 +854,100 @@ export default class List extends Component {
 }
 ```
 
+在增加完我们可以直接通过修改`this.mytext.current.value=""`获取到输入框的值，并将输入框的值清空
+
 React不建议直接修改state的值，因为可能会造成不能预料的问题，所以克隆一个新的数组，然后修改这个新的数组的值，最后通过setState修改状态。
 
 此外关于slice的补充：
 
 ![image-20220619214657378](React%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.assets/image-20220619214657378.png)
+
+#### 条件渲染
+
+我们再来润色一下上面记事本的案例，当没有记录时，显示暂无待办事项，有记录时则不显示。
+
+由于我们在JSX中可以直接在大括号里写js表达式，所以可以写成如下
+
+```jsx
+{条件?<div>暂无待办事项</div>:null}
+```
+
+或者写成这样
+
+```jsx
+{条件 && <div>暂无待办事项</div>}
+```
+
+再或者这种通过类名来实现不同样式的方式，它在之前也经常用。
+
+```jsx
+<div className={this.state.list.length<1 ? '':'hidden'}>暂无待办事项</div>
+```
+
+```css
+//index.css
+.hidden{
+	display: none;
+}
+```
+
+这样子性能比较好
+
+目前完善的全部代码：
+
+```react
+export default class List extends Component {
+	constructor(){
+		super()
+		this.mytext = React.createRef()
+		this.state = {
+			list:[{
+					id:1,
+					text:"zhangsan"
+				},
+				{
+						id:2,
+						text:'wanglu'
+				},
+				{
+						id:3,
+						text:"lisi"
+				}]
+		}
+	}
+	render() {
+		return (
+			<div>
+				<input ref={this.mytext}/>
+				<button onClick={()=>this.add()}>add</button>
+				<ul>
+				{this.state.list.map((item,index)=><li key={item.id}>{item.text} <button onClick={()=>this.delete(index)}>delete</button></li>)}
+				</ul>
+				{this.state.list.length<1?<div>暂无待办事项</div>:null}
+			</div>
+		)
+	}
+	add(){
+		let newlist = this.state.list
+		newlist.push({
+			id:Date.now(),
+			text:this.mytext.current.value})
+		this.setState({
+			list:newlist
+		})
+		this.mytext.current.value=""
+	}
+	delete(index){
+		let newlist = this.state.list
+		newlist.splice(index,1)
+		this.setState({
+			list:newlist
+		})
+	}
+}
+```
+
+
 
 #### 资源的挂载与卸载
 
@@ -1408,3 +1515,4 @@ export default class List extends Component {
 **提示：**`event.stopPropagation`方法是用来**阻止当前事件在DOM树上冒泡**。使用stopPropagation()函数可以阻止当前事件向祖辈元素的冒泡传递，也就是说该事件不会触发执行当前元素的任何祖辈元素的任何事件处理函数。
 
 该函数只阻止事件向祖辈元素的传播，不会阻止该元素自身绑定的其他事件处理函数的函数。`event.preventDefault()`方法是用于取消事件的默认行为，例如，当点击提交按钮时阻止对表单的提交。但此方法并不被ie支持，在ie下需要用`window.event.returnValue = false; `来实现。
+
