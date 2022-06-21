@@ -1,12 +1,12 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'; 
-import List from './component/todolist.js'
+import Card from './component/选项卡.js'
 
 class App extends React.Component{
 	render(){
 		return(
 			<div>
-				<List />
+				<Card />
 			</div>
 		)
 	}
