@@ -4,7 +4,8 @@ export default class Cinema extends Component {
 	constructor() {
 	    super()
 		this.state={
-			cinemaList:[]
+			cinemaList:[],
+			filterList:[]
 		}
 		this.handleInput = this.handleInput.bind(this)
 		//请求数据
@@ -21,7 +22,8 @@ export default class Cinema extends Component {
 			}).then(res=>{
 				console.log(res.data)
 				this.setState({
-					cinemaList:res.data.data.cinemas
+					cinemaList:res.data.data.cinemas,
+					filterList:res.data.data.cinemas
 				})
 			}).catch(err=>{
 				console.log(err)
@@ -34,7 +36,7 @@ export default class Cinema extends Component {
 			<input placeholder="请输入查询内容" className="searchCinema" onInput={this.handleInput}/>
 			</div>
 				{
-					this.state.cinemaList.map(item=>
+					this.state.filterList.map(item=>
 					<dl key={item.cinemaId}>
 					<dt>{item.name}</dt>
 					<dd>{item.address}</dd>
@@ -45,6 +47,10 @@ export default class Cinema extends Component {
 		)
 	}
 	handleInput(event){
-		this.state.cinemaList.filter(item=>item.includes(event.target.value))
+		let newlist = this.state.cinemaList.filter(item=>item.name.toUpperCase().includes(event.target.value.toUpperCase())||
+		item.address.toUpperCase().includes(event.target.value.toUpperCase()))
+		this.setState({
+			filterList:newlist
+		})
 	}
 }
