@@ -6,15 +6,15 @@ export default class Card extends Component {
 			<div>
 			<div>
 			首页
-			<Navbar title="首页"/>
-			</div>
-			<div>
-			我的
-			<Navbar title="我的"/>
+			<Navbar title="首页" leftshow={true}/>
 			</div>
 			<div>
 			分类
-			<Navbar title="分类"/>
+			<Navbar title="分类"  leftshow={true}/>
+			</div>
+			<div>
+			我的
+			<Navbar title="我的"  leftshow={false}/>
 			</div>
 			</div>
 		)

@@ -316,6 +316,16 @@ ReactDOM.render(
 );
 ```
 
+我们还可以在大括号中写函数表达式，如下调用which函数
+
+```jsx
+{
+	this.which()
+}
+```
+
+
+
 #### 样式
 
 React推荐使用内联样式。我们可以使用三元运算表达式语法来设置内联样式，React会在指定元素数字后自动添加px。以下实例演示了为h1元素添加**myStyle**内联样式:
@@ -459,8 +469,6 @@ import ReactDOM from 'react-dom/client';
 import App from './component/class.js'
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-
-
 ```
 
 1.我们试着封装一个输出"Hello World！"的组件，组件名为HelloMessage：
@@ -470,10 +478,7 @@ function HelloMessage(props){
 	return <h1>Hello World!</h1>;
 }
 const element= <HelloMessage />;
-ReactDOM.render(
-	element,
-	document.getElementById('example')
-);
+ReactDOM.createRoot(document.getElementById('example')).render(element);
 ```
 
 **实例解析：**
@@ -520,10 +525,7 @@ function HelloMessage(props){
 	return <h1>Hello World!</h1>;
 }
 const element = <HelloMessage name="Runoob" />;
-ReactDOM.render(
-	element,
-	document.getElementById('example');
-)
+ReactDOM.createRoot(document.getElementById('example')).render(element);
 ```
 
 以上实例中 **name** 属性通过 **props.name** 来获取。
@@ -689,7 +691,19 @@ ReactDOM.render(
 
 ```
 
-个人认为，作用方面来说，React的State的作用和Vue的data的作用是一致的，概念上称他们为“状态”，但是其实现与用法不同，React更新状态是通过setState方法，vue里面是使用赋值操作符。vue是双向数据绑定，React是向下传递数据，Vue，当你把一个普通的 JavaScript 对象传给 Vue 实例的`data`选项，Vue 将遍历此对象所有的属性，并使用`Object.defineProperty`把这些属性全部转为`getter/setter`。从而实现响应式。React，是通过setState函数来更改属性，而setState函数是异步的，接受一个回调函数。
+个人认为，作用方面来说，React的State的作用和Vue的data的作用是一致的，概念上称他们为“状态”，但是其实现与用法不同，React更新状态是通过setState方法，vue里面是使用赋值操作符。vue是双向数据绑定，React是向下传递数据，Vue，当你把一个普通的 JavaScript 对象传给 Vue 实例的`data`选项，Vue 将遍历此对象所有的属性，并使用`Object.defineProperty`把这些属性全部转为`getter/setter`。从而实现响应式。React，是通过setState函数来更改属性，而setState函数是异步更新状态的，接受一个回调函数，调用完之后不会立即更新状态。
+
+#### setState
+
+在 React 的生命周期以及绑定的事件流中，所有的 setState 操作会先缓存到一个队列中，在整个事件结束后或者 mount 流程结束后，才会取出之前缓存的 setState 队列进行一次计算，触发 state 更新。setState既不是微任务也不是宏任务，本质上还是在一个事件循环中，是同步执行的，它并没有切换到另外宏任务或者微任务中，在运行上是基于同步代码实现，只是行为上看起来像异步，而State的更新可能是异步的。
+
+出于性能考虑，React 可能会把多个 `setState()` 调用合并成一个调用。
+
+setState处在同步的逻辑中，异步更新状态，更新真实DOM。setState处在异步的逻辑中，同步更新状态。同步更新真实DOM。
+
+因为 `this.props` 和 `this.state` 可能会异步更新，所以你不要依赖他们的值来更新下一个状态。
+
+所以可以利用这一点，setState接受第二个参数，是一个回调函数，状态和dom更新完后就会被触发，在回调函数中依赖他们更新下一个状态就可以实现。
 
 **简单练习：**
 
@@ -947,11 +961,11 @@ export default class List extends Component {
 }
 ```
 
-
-
 #### 资源的挂载与卸载
 
 在具有许多组件的应用程序中，在销毁时释放组件所占用的资源非常重要。
+
+生命周期函数里适合用来发送ajax请求。
 
 每当 Clock 组件第一次加载到 DOM 中的时候，我们都想生成定时器，这在 React 中被称为**挂载**。
 
@@ -1282,6 +1296,8 @@ Props 验证使用 **propTypes**，它可以保证我们的应用组件被正确
 以下实例创建一个 Mytitle 组件，属性 title 是必须的且是字符串，非字符串类型会自动转换为字符串 ：
 
 ```react
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 var title = "菜鸟教程";
 // var title = 123;
 class MyTitle extends React.Component {
@@ -1373,6 +1389,36 @@ MyComponent.propTypes = {
   }
 }
 ```
+
+二者结合实现
+
+```react
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+export default class Navbar extends Component {
+	state = {
+		
+	}
+	render() {
+		return (
+			<div>
+			{this.props.leftshow && <button>返回</button>}
+			nav-bar{this.props.title}
+			{!this.props.leftshow && <button>home</button>}
+			</div>
+		)
+	}
+}
+Navbar.protoTypes = {
+	title:PropTypes.string,
+	leftshow:PropTypes.bool,
+}
+Navbar.defaultProps = {
+	leftshow:false
+}
+```
+
+![image-20220623122356712](React%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.assets/image-20220623122356712.png)
 
 ###  事件处理
 
