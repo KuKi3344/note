@@ -5,7 +5,7 @@ export default class Cinema extends Component {
 	    super()
 		this.state={
 			cinemaList:[],
-			filterList:[]
+			mytext:""
 		}
 		this.handleInput = this.handleInput.bind(this)
 		//请求数据
@@ -23,7 +23,6 @@ export default class Cinema extends Component {
 				console.log(res.data)
 				this.setState({
 					cinemaList:res.data.data.cinemas,
-					filterList:res.data.data.cinemas
 				})
 			}).catch(err=>{
 				console.log(err)
@@ -33,10 +32,10 @@ export default class Cinema extends Component {
 		return (
 			<div className="list">
 			<div className="head">
-			<input placeholder="请输入查询内容" className="searchCinema" onInput={this.handleInput}/>
+			<input placeholder="请输入查询内容" className="searchCinema" value={this.mytext} onInput={this.handleInput}/>
 			</div>
 				{
-					this.state.filterList.map(item=>
+					this.getfilterList().map(item=>
 					<dl key={item.cinemaId}>
 					<dt>{item.name}</dt>
 					<dd>{item.address}</dd>
@@ -47,10 +46,12 @@ export default class Cinema extends Component {
 		)
 	}
 	handleInput(event){
-		let newlist = this.state.cinemaList.filter(item=>item.name.toUpperCase().includes(event.target.value.toUpperCase())||
-		item.address.toUpperCase().includes(event.target.value.toUpperCase()))
 		this.setState({
-			filterList:newlist
+			mytext:event.target.value
 		})
+	}
+	getfilterList(){
+		return this.state.cinemaList.filter(item=>item.name.toUpperCase().includes(this.state.mytext.toUpperCase())||
+		item.address.toUpperCase().includes(this.state.mytext.toUpperCase()))
 	}
 }
