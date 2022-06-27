@@ -7,15 +7,18 @@ export default class List extends Component {
 		this.state = {
 			list:[{
 					id:1,
-					text:"zhangsan"
+					text:"zhangsan",
+					isCheck:true
 				},
 				{
 						id:2,
-						text:'wanglu'
+						text:'wanglu',
+						isCheck:false
 				},
 				{
 						id:3,
-						text:"lisi"
+						text:"lisi",
+						isCheck:false
 				}]
 		}
 	}
@@ -25,7 +28,11 @@ export default class List extends Component {
 				<input ref={this.mytext}/>
 				<button onClick={()=>this.add()}>add</button>
 				<ul>
-				{this.state.list.map((item,index)=><li key={item.id}>{item.text} <button onClick={()=>this.delete(index)}>delete</button></li>)}
+				{this.state.list.map((item,index)=><li key={item.id}>
+				<input type="checkbox" checked={item.isCheck} onChange={()=>{this.handleChecked(index)}}/>
+				<span style={{textDecoration:item.isCheck?"line-through":""}}>{item.text}</span>
+				<button onClick={()=>this.delete(index)}>delete</button>
+				</li>)}
 				</ul>
 				<div className={this.state.list.length<1 ? '':'hidden'}>暂无待办事项</div>
 			</div>
@@ -46,6 +53,13 @@ export default class List extends Component {
 		newlist.splice(index,1)
 		this.setState({
 			list:newlist
+		})
+	}
+	handleChecked(index){
+		let newlist = [...this.state.list]
+		newlist[index].isCheck = !this.state.list[index].isCheck
+		this.setState({
+			list : newlist
 		})
 	}
 }

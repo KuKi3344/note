@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'; 
-import Card from './component/选项卡.js'
+import Card from './component/选项卡.js';
 
 class App extends React.Component{
 	render(){

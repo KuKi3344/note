@@ -2,6 +2,8 @@ import React, { Component } from 'react'
 import Film from './children/Film.js'
 import Cinema from './children/Cinema.js'
 import Center from './children/Center.js'
+import Tabbar from './children/Tabbar.js'
+import Navbar from './children/Navbar.js'
 import '../css/choose.css'
 
 export default class Card extends Component {
@@ -9,39 +11,22 @@ export default class Card extends Component {
 	    super()
 		this.state = {
 			current:0,
-			list:[{
-					id:1,
-					text:'电影'
-				},
-				{
-					id:2,
-					text:"影院"
-				},
-				{
-					id:3,
-					text:'我的'
-				}]
 		}
 	}
 	render() {
 		return (
 			<div>
+			<Navbar gocenter={()=>this.setState({current:2})}/>
 				{
 					this.which()
 				}
-				<ul>
-				{
-						this.state.list.map((item,index)=>
-						<li key={item.id} className={this.state.current === index ? 'active' : ''} onClick={()=>this.handleClick(index)}>{item.text}</li>)		
-					}
-				</ul>
+				<Tabbar current={this.state.current} event={
+					(index)=>{this.setState({
+						current:index
+					})}
+					}/>
 			</div>
 		)
-	}
-	handleClick(index){
-		this.setState({
-			current:index
-		})
 	}
 	which(){
 		switch(this.state.current){
