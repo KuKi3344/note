@@ -11,6 +11,18 @@ export default class Card extends Component {
 	    super()
 		this.state = {
 			current:0,
+			list:[{
+					id:1,
+					text:'电影'
+				},
+				{
+					id:2,
+					text:"影院"
+				},
+				{
+					id:3,
+					text:'我的'
+				}]
 		}
 	}
 	render() {
@@ -20,7 +32,7 @@ export default class Card extends Component {
 				{
 					this.which()
 				}
-				<Tabbar current={this.state.current} event={
+				<Tabbar list={this.state.list} current={this.state.current} event={
 					(index)=>{this.setState({
 						current:index
 					})}
