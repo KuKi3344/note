@@ -655,9 +655,11 @@ export default class List extends Component {
 }
 ```
 
-#### 表单的受控和非受控
+**ref在表单通信时也能用到，详情参照后面父子通信部分。**
 
-##### 非受控组件
+### 表单的受控和非受控
+
+#### 非受控组件
 
 React要编写一个非受控组件，可以使用ref来从DOM节点中获取表单数据，就是非受控组件。如上面的例子就是非受控组件接受一个表单的值。
 
@@ -669,7 +671,7 @@ React要编写一个非受控组件，可以使用ref来从DOM节点中获取表
 <input ref={this.myusername} defaultValue="lulu"/>
 ```
 
-##### 受控组件
+#### 受控组件
 
 在HTML中，表单元素(如<input>、<textarea>和<select>)通常自己维护state，并根据用户输入进行更新，而在React中，可变状态通常保存在组件的state属性中，并且只能通过setState来更新。
 
@@ -684,6 +686,46 @@ React要编写一个非受控组件，可以使用ref来从DOM节点中获取表
 由于在表单元素上设置了value属性，因此显示的值始终为`this.state.username`，这使得React的state成为唯一数据源，由于onChange在每次改变时都会执行并更新React的state，因此显示的值将随着用户输入而更新。
 
 对于受控组件来说，输入的值始终由React的state驱动，你也可以将value传递给其它UI元素，或者通过其他事件处理函数重置，但这意味着你需要编写更多的代码。
+
+如上的例子其实和vue的v-model的实现原理是差不多一致的
+
+**总的来说**，状态全在父组件，而子组件无状态，子组件需要的状态由父组件统一管理，通过props传入给子组件，然后子组件想要修改就通过触发props传入的事件，通过这个通知父组件修改父组件的状态。子组件的数据渲染被父组件传递的props完全控制，这些子组件就叫做受控组件。
+
+##### **表单域中的应用**
+
+```react
+import React, { Component } from 'react'
+
+export default class Card extends Component {
+	state={
+		username:'',
+		password:''
+	}
+	render() {
+		return (
+			<div>
+				<h1>登陆页面</h1>
+				<Filed label="用户名" type="text" onChange={(value)=>{this.setState({username:value})}} value={this.state.username}/>
+				<Filed label="密码" type="password" onChange={(value)=>{this.setState({password:value})}} value={this.state.password}/>
+				<button onClick={()=>{}}>登录</button>
+				<button onClick={()=>{this.setState({username:'',password:''})}}>重设</button>
+			</div>
+		)
+	}
+}
+
+class Filed extends Component {
+	render() {
+		return (
+			<div>
+				<label>{this.props.label}</label>
+				<input type={this.props.type} onChange={(evt)=>{this.props.onChange(evt.target.value)}} value={this.props.value}/>
+			</div>
+		)
+	}
+}
+
+```
 
 ### State(状态)
 
@@ -1220,13 +1262,19 @@ state是用来管理组件自身内部状态的。当组件内部使用库内置
 
 #### hooks 的优势是什么
 
-- 简化组件逻辑
-- 复用状态逻辑
+- 简化组件逻辑，高阶组件为了复用，导致代码层级复杂
+- 生命周期的复杂
 - 使用了无状态组件，但又需要状态时
 
-#### 常用 hooks
+**常用 hooks**
 
 **useState、useEffect、useRef**
+
+（[详情用法参考官方文档](https://react.docschina.org/docs/hooks-state.html)）
+
+#### useState
+
+
 
 ### props
 
@@ -1467,6 +1515,8 @@ state的主要作用是用于组件保存、控制、修改自己的可变状态
 
 props的主要作用是让使用该组件的父组件可以传入参数来配置该组件/它是外部传进来的配置参数。组件内部无法控制也无法修改，除非外部组件主动传入新的props，否则组件的props永远保持不变。
 
+**无状态组件**
+
 没有state的组件叫无状态组件，设置了state的叫做有状态组件。因为状态会带来管理的复杂性，我们尽量多写无状态组件，尽量少些有状态的组件，这样会降低维护代码的难度，也会在一定程度上增强组件的可复用性。
 
 ###  事件处理
@@ -1611,3 +1661,369 @@ export default class List extends Component {
 
 该函数只阻止事件向祖辈元素的传播，不会阻止该元素自身绑定的其他事件处理函数的函数。`event.preventDefault()`方法是用于取消事件的默认行为，例如，当点击提交按钮时阻止对表单的提交。但此方法并不被ie支持，在ie下需要用`window.event.returnValue = false; `来实现。
 
+### 组件通信
+
+#### 父子组件通信方式
+
+##### props方法
+
+用一个案例来举例子，定义一个Sidebar组件为侧边栏，在定义一个Navbar组件为导航栏，点击Navbar组件中的按钮来操控Sidebar的显示。
+
+在二者的父组件中写入如下
+
+```react
+import React, { Component } from 'react'
+import Navbar from './Navbar.js'
+import Sidebar from './Sidebar.js'
+
+export default class List extends Component {
+	constructor() {
+	    super()
+		this.state={
+			isShow:false
+		}
+	}
+	render() {
+		return (
+			<div>
+				<Navbar event={()=>{
+					this.setState({
+						isShow:!this.state.isShow
+					})
+				}} />
+				{this.state.isShow&&<Sidebar />}
+			</div>
+		)
+	}
+}
+```
+
+然后在给Navbar的按钮绑定如下事件
+
+```react
+<button onClick={()=>{this.props.event()}}>click</button>
+```
+
+与vue的`$emit`作用相同,通过props将自定义事件传入子组件，然后在子组件中通过`this.props.xxx()`来调用这个自定义事件，然后通过自定义事件可以操控父组件的状态，因为这个事件是写在父组件里的。
+
+在写组件时，尽量让状态集中在父组件，使子组件尽量无状态，降低代码维护度，增强组件的可复用性。然后通过props将状态传递以及实现父子组件的通信来实现功能。这种让数据渲染被调用者传递的props完全控制，为受控组件，是建议多写的，这样可以减少代码的复杂度。
+
+##### ref标记方法
+
+**表单域中的应用**
+
+```react
+import React, { Component } from 'react'
+
+export default class Card extends Component {
+	username=React.createRef()
+	password=React.createRef()
+	render() {
+		return (
+			<div>
+				<h1>登陆页面</h1>
+				<Filed label="用户名" type="text" ref={this.username}/>
+				<Filed label="密码" type="password" ref={this.password}/>
+				<button onClick={()=>{console.log(this.username.current,this.password.current)}}>登录</button>
+				<button onClick={()=>{
+					this.username.current.clear();
+					this.password.current.clear();
+					}}>重设</button>
+			</div>
+		)
+	}
+}
+
+class Filed extends Component {
+	state={
+		value:''
+	}
+	clear(){
+		this.setState({
+			value:''
+		})
+	}
+	render() {
+		return (
+			<div>
+				<label>{this.props.label}</label>
+				<input type={this.props.type} value={this.state.value} onChange={(evt)=>{this.setState({value:evt.target.value})}}/>
+			</div>
+		)
+	}
+}
+```
+
+其中，在父组件引用子组件时，在子组件上绑定ref，此时再父组件通过`this.xxx.current.xxx()`可以触发子组件的方法，（父组件拿到子组件的引用，从而调用子组件的方法）`this.xxx.current.state.xxx`可以获取到子组件的状态，可以利用这两个来触发子组件更新状态以及获取子组件的状态。
+
+在父组件中清除子组件的input输入框的value值，`this.refs.form.reset()`
+
+#### 非父子组件通信方式
+
+##### 状态提升（中间人模式）
+
+React中的状态提升概括来说，就是将多个组件需要共享的状态提升到它们最近的父组件上，在父组件上改变这个状态然后通过props分发给子组件。**（就是父子通信的组合应用）**
+
+举个例子，点击左边某条影片信息，右边显示影片具体简介，左边为一个子组件，右边显示简介也是一个子组件，二者为兄弟组件，二者的数据都由父组件通过props传入，当点击左边组件的影片时，在onClick里触发父组件传入的方法`this.props.event(value)`（修改传入右边组件的状态），通过这个改变此时右边显示的具体简介。
+
+##### context传值
+
+这里提及到了一个**生产者(Provider)**和**消费者(consumer)**的概念。
+
+![image-20220725100336277](React%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.assets/image-20220725100336277.png)
+
+谁想用父级Provider提供的value值，谁就要把自己包装成消费者consumer。
+
+首先创造供应商组件
+
+```js
+const GlobalContext = React.createContext() //创建context对象
+```
+
+供应商组件外部包裹`<GlobalContext.Provider>`,传值是通过`<GlobalContext.Provider value={{xxx:"xx",xxx:()=>{`
+
+`xxxx}}}>`
+
+消费者组件外部包裹`<GlobalContext.Consumer>`，取供应商组件提供的值是通过value.xxx（调用方法用value.xxxx(xx)）
+
+传方法是为了之后的工作，比如在子组件里点击切换后，让父组件更改某项状态值，再重传入其它子组件中，进行重新刷新渲染。
+
+**示例代码：**
+
+```js
+import React, { Component } from 'react'
+import axios from 'axios'
+
+const GlobalContext = React.createContext() //创建context对象
+
+export default class Film extends Component {
+	constructor() {
+	    super()
+		this.state = {
+			filmList:[],
+			info:''
+		}
+		axios({
+			url:'https://m.maizuo.com/gateway?cityId=210200&pageNum=1&pageSize=10&type=1&k=3394110',
+			methods:'get',
+			headers:{
+				'X-Client-Info': '{"a":"3000","ch":"1002","v":"5.2.0","e":"16557821981743048052572161"}',
+				'X-Host': 'mall.film-ticket.film.list'
+				}
+			}).then(res=>{
+				this.setState({
+					filmList:res.data.data.films
+				})
+		})
+	}
+	render() {
+		return (
+		<GlobalContext.Provider value={{
+			intro:this.state.info,
+			changeInfo:(value)=>{
+				this.setState({
+					info:value
+				})
+			}
+			}}>
+			<div className="filmlist">
+				<div style={{marginTop:'40px'}}>
+				{
+					this.state.filmList.map((item,index)=>
+						<Filmitem key={item.filmId} item={item}/>	
+						)
+				}
+				<FilmDetail></FilmDetail>
+				</div>
+			</div>
+		</GlobalContext.Provider>
+		)
+	}
+}
+
+
+class Filmitem extends Component {
+	render() {
+		return (
+		<GlobalContext.Consumer>
+		{
+			(value)=>{
+			return(
+				<div  style={{borderBottom:'1px solid #e7e7e7',display:'flex',paddingBottom:'5px'}} onClick={()=>{
+					value.changeInfo(this.props.item.synopsis);
+				}}>
+					<div>
+						<img src={this.props.item.poster} style={{width:'70px',height:'90px',marginTop:'10px',marginLeft:'5px'}} alt=""/>
+					</div>
+					<div>
+						<dl style={{width:'100%'}}>
+						<dt style={{fontSize:'14px',color:'#000000',margin:'5px'}}>
+						{this.props.item.name}
+						</dt>
+						<dt style={{margin:'5px',fontSize:'12px',color:"#ff8418"}}>大众评分：{this.props.item.grade ? this.props.item.grade:'暂无'}</dt>
+						<dd className="actors">主演：{this.props.item.actors.map((item,index)=><span key={index}>{item.name}&ensp;</span>)}</dd>
+						<dt style={{fontSize:'12px',color:'#717171',margin:'5px'}}>{this.props.item.nation} | {this.props.item.runtime}分钟</dt>
+						</dl>		
+					</div>
+				</div>	
+			)
+			}
+		}
+		</GlobalContext.Consumer>
+		)
+	}
+}
+
+class FilmDetail extends Component {
+	render() {
+		return (
+		<GlobalContext.Consumer>
+		{
+			(value)=>{
+		return(
+			<div style={{position: 'fixed',top:'100px',width:'180px',height:'200px',background:'#fff',right:'0',border:'1px #000 solid'}}>
+				{value.intro}
+			</div>	
+		)	
+			}
+		}
+		
+		</GlobalContext.Consumer>
+		)
+	}
+}
+```
+
+这样就没了父子关系之说，这是个跨组件传值方案
+
+定义好了供应商和消费者，那么多个消费者之间就可以互相传信息了，无论嵌套多深了
+
+##### 插槽
+
+在vue中，插槽有个固定的名字叫**slot**，而在react中，插槽是以children的方式存在的
+
+```js
+export default class Card extends Component {
+	render() {
+		return (
+			<div>
+				<Child>
+					<div>1111</div>
+				</Child>
+			</div>
+		)
+	}
+}
+
+class Child extends Component {
+	render() {
+		return (
+			<div>
+				child
+            	 {/*插槽内容：如下显示1111*/}
+				{this.props.children}
+			</div>
+		)
+	}
+}
+```
+
+在子组件中写的内容,如`<Child><div>1111</div></Child>`，固定会挂载到子组件的this.props.children上，不管中间写了多少内容，会全部挂载到this.props.children上,如下。
+
+```react
+<Child>
+	<div>111</div>
+	<div>222</div>
+	<div>333</div>
+</Child>
+```
+
+```react
+<div>
+	child
+	{this.props.children}
+	{this.props.children}
+	{this.props.children}
+</div>
+```
+
+它不会智能的对应上，这么写的话，它会显示三遍111 222 333，而不是一遍（可以理解为害怕误会），所以我们就需要**具名插槽**，而在react中具名插槽是以如下方式存在的。
+
+如果我想实现对号入座，111对应到第一个里，222对应到第二个里，333对应到第三个里，该怎么实现？
+
+如果往子组件里插入多个，其实`this.props.children`就变成了一个数组,所以我们可以写成这样。
+
+```react
+<div>
+	child
+	{this.props.children[0]}
+	{this.props.children[1]}
+	{this.props.children[2]}
+</div>
+```
+
+结果就是我们想要的，只显示一遍111 222 333,它们一一对应上了。
+
+这个个人感觉没有vue的具名好用，这个有些依赖顺序，写死了，不太好用。
+
+**插槽有什么用呢？**
+
+- **为了复用**
+- **一定程度上减少了父子通信**
+
+因为插到子组件的内容是写在父组件里的，这就说明，我插到子组件的内容里是可以访问到父组件定义的状态的，这样会方便不少，不用进行父子传值了。
+
+将之前的抽屉示例改造成插槽形式
+
+```react
+import React, { Component } from 'react'
+import Sidebar from './Sidebar.js'
+
+export default class List extends Component {
+	constructor() {
+	    super()
+		this.state={
+			isShow:false
+		}
+	}
+	render() {
+		return (
+			<div>
+				<Navbar>
+					<button onClick={()=>{this.setState({isShow:!this.state.isShow})}}>click</button>
+				</Navbar>
+				{this.state.isShow&&<Sidebar />}
+			</div>
+		)
+	}
+}
+
+export default class Navbar extends Component {
+	render() {
+		return (
+			<div style={{background:"red"}}>
+				{this.props.children}
+				<span>navbar</span>
+			</div>
+		)
+	}
+}
+```
+
+#### 性能优化方案
+
+#### shouldComponentUpdate
+
+控制组件自身或者子组件是否需要更新，尤其在子组件非常多的情况下，需要进行优化。
+
+#### PureComponent
+
+`PureComponent`会帮你比较新的`props`和旧的`props`，新的`state`和老的`state`（值相等或者对象含有相同的属性、且属性值相等），决定`shouldComponentUpdate`返回true或者false，从而决定要不要呼叫`render function`。
+
+```js
+export default class List extends PureComponent 
+```
+
+如上写完后，当state更新后值不变，就不会进行重复的刷新了。
+
+如果你的state或者props永远都会变，那么用PureComponent并不会比较快，因为shallowEqual也需要时间。
