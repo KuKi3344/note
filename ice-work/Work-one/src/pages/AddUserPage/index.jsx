@@ -3,9 +3,9 @@ import { Message } from '@alifd/next';
 // eslint-disable-next-line no-unused-vars
 import style from './index.module.css';
 import AddUserForm from './components/AddUserForm';
+import { AddUser } from '@/static/requestApi';
 
 const ob = {
-  id: '',
   phone: '',
   username: '',
   email: '',
@@ -24,13 +24,7 @@ const AddUserPage = () => {
   async function addRequest() {
     let result = 0;
     // eslint-disable-next-line @iceworks/best-practices/recommend-polyfill, @iceworks/best-practices/no-http-url
-    const res = await fetch('http://127.0.0.1:8848/user/add', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(addlist),
-    });
+    const res = await AddUser('/user/add', addlist);
     result = await res.json();
     if (result.code !== 200) {
       Message.error(result.message);

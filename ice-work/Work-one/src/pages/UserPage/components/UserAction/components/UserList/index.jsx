@@ -1,11 +1,12 @@
 /* eslint-disable react/jsx-no-bind */
 /* eslint-disable react/jsx-no-undef */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Message } from '@alifd/next';
 import style from './index.module.css';
 import DeleteDialog from './components/DeleteDialog';
 import CommonDialog from './components/CommonDialog';
 import DataTable from './components/DataTable';
+import { UpdateUser, DeleteUser } from '@/static/requestApi';
 
 const UserList = (props) => {
   // eslint-disable-next-line no-unused-vars
@@ -51,13 +52,7 @@ const UserList = (props) => {
   async function updateRequest() {
     let result = 0;
     // eslint-disable-next-line @iceworks/best-practices/recommend-polyfill, @iceworks/best-practices/no-http-url
-    const res = await fetch('http://127.0.0.1:8848/user/update', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(editPerson),
-    });
+    const res = await UpdateUser('/user/update', editPerson);
     result = await res.json();
     if (result.code !== 200) {
       Message.error(result.message);
@@ -71,9 +66,7 @@ const UserList = (props) => {
   async function deleteRequest() {
     let result = 0;
     // eslint-disable-next-line @iceworks/best-practices/recommend-polyfill
-    const res = await fetch(`http://127.0.0.1:8848/user/delete/${deletePerson.id}`, {
-      method: 'POST',
-    });
+    const res = await DeleteUser('/user/delete', deletePerson.id);
     result = await res.json();
     if (result.code !== 200) {
       Message.error(result.message);
@@ -96,11 +89,6 @@ const UserList = (props) => {
     deleteRequest();
   };
 
-  useEffect(() => {
-    getlist();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <div className={style.container}>
       <DataTable newlist={newlist} watchOpen={watchOpen} editOpen={editOpen} deleteOpen={deleteOpen} />
@@ -114,7 +102,6 @@ const UserList = (props) => {
         }}
       />
       <CommonDialog
-        mode="update"
         title="更新用户"
         Dialogvis={editvis}
         DialogPerson={editPerson}
@@ -128,7 +115,7 @@ const UserList = (props) => {
           formChange(values);
         }}
       />
-      <CommonDialog title="查看用户" DialogClose={watchClose} Dialogvis={watchvis} DialogPerson={editPerson} mode="watch" />
+      <CommonDialog title="查看用户" DialogClose={watchClose} Dialogvis={watchvis} DialogPerson={editPerson} ispreview />
     </div>
   );
 };

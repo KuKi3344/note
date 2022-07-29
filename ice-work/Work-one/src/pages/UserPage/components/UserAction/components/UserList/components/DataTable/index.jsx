@@ -39,7 +39,7 @@ function DataTable(props) {
   };
   return (
     <div style={{ overflowY: 'scroll' }}>
-      <Table dataSource={newlist} style={{ height: '450px' }}>
+      <Table dataSource={newlist} style={{ height: '460px' }}>
         <Table.Column title="姓名" dataIndex="username" />
         <Table.Column title="性别" dataIndex="sex" />
         <Table.Column title="手机号" dataIndex="phone" />

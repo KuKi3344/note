@@ -4,7 +4,7 @@ import { Dialog, Form, Input, Radio, Button } from '@alifd/next';
 const FormItem = Form.Item;
 
 const CommonDialog = (props) => {
-  const { DialogClose, DialogPerson, DialogUser, Dialogvis, formChange, mode, title } = props;
+  const { DialogClose, DialogPerson, DialogUser, Dialogvis, formChange, ispreview, title } = props;
   // eslint-disable-next-line no-console
   return (
     <div>
@@ -13,7 +13,7 @@ const CommonDialog = (props) => {
           style={{ width: '80%', margin: '20px' }}
           colon
           value={DialogPerson}
-          isPreview={mode === 'watch'}
+          isPreview={ispreview}
           onChange={(values) => {
             formChange(values);
           }}
@@ -34,7 +34,7 @@ const CommonDialog = (props) => {
             <Input placeholder="Please Enter phone number" />
           </FormItem>
           <FormItem label=" " colon={false} style={{ float: 'right' }}>
-            {mode === 'update' && (
+            {!ispreview && (
               <Form.Submit type="primary" validate onClick={DialogUser} style={{ marginRight: 8 }}>
                 确认
               </Form.Submit>
