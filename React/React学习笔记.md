@@ -1262,9 +1262,10 @@ state是用来管理组件自身内部状态的。当组件内部使用库内置
 
 #### hooks 的优势是什么
 
-- 简化组件逻辑，高阶组件为了复用，导致代码层级复杂
-- 生命周期的复杂
-- 使用了无状态组件，但又需要状态时
+- **简化组件逻辑，高阶组件为了复用，导致代码层级复杂**
+- **生命周期的复杂**
+- **使用了无状态组件，但又需要状态时**
+- **解决了类组件的this 指向问题**
 
 **常用 hooks**
 
@@ -1274,7 +1275,75 @@ state是用来管理组件自身内部状态的。当组件内部使用库内置
 
 #### useState
 
+**React 假设当你多次调用 useState 的时候，你能保证每次渲染时它们的调用顺序是不变的。**
 
+通过在函数组件里调用它来给组件添加一些内部 state，React会 **在重复渲染时保留这个 state**
+
+useState 唯一的参数就是初始 state
+
+**useState 会返回一个数组**：**一个 state，一个更新 state 的函数**
+
+- 在初始化渲染期间，返回的状态 (state) 与传入的第一个参数 (initialState) 值相同
+- 你可以在事件处理函数中或其他一些地方调用这个函数。它类似 class 组件的 this.setState，但是它**不会把新的 state 和旧的 state 进行合并，而是直接替换**
+
+```react
+const [number, setNumber] = useState(initialState)
+```
+
+它是异步的，所以在设置完之后想要获取更新的状态最新的值，就需要用到useEffect。
+
+ **每次渲染都是独立的闭包**
+
+- 每一次渲染都有它自己的 Props 和 State
+- 每一次渲染都有它自己的事件处理函数
+- 当点击更新状态的时候，函数组件都会重新被调用，那么每次渲染都是独立的，取到的值不会受后面操作的影响
+
+#### Object.is （浅比较）
+
+- Hook 内部使用 Object.is 来比较新/旧 state 是否相等
+- **与 class 组件中的 setState 方法不同，如果你修改状态的时候，传的状态值没有变化，则不重新渲染**
+- **与 class 组件中的 setState 方法不同，useState 不会自动合并更新对象。你可以用函数式的 setState 结合展开运算符来达到合并更新对象的效果**
+
+#### useEffect
+
+> 如果你熟悉 React class 的生命周期函数，你可以把 `useEffect` Hook 看做 `componentDidMount`，`componentDidUpdate` 和 `componentWillUnmount` 这三个函数的组合。
+
+##### 传空数组
+
+当你想在初始化的时候请求一次接口，而你发现直接写在组件函数里，会一直打请求不停止，这个时候就需要写成这种
+
+```react
+  useEffect(() => {
+    getlist();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); //传空数组
+```
+
+由于传的是空数组，所以这个函数在整个组件渲染的时候只会执行一次（一直只有一次），这就告诉 React 你的 effect 不依赖于 props 或 state 中的任何值，所以它永远都不需要重复执行。这并不属于特殊情况 —— 它依然遵循依赖数组的工作方式.
+
+##### 不传空数组
+
+```react
+  useEffect(() => {
+    getlist();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [number]);
+```
+
+当number有变化时，便会触发这个副作用函数。
+
+#### useCallback(记忆函数)
+
+防止因为组件重新渲染，导致方法被重新创建，起到缓存作用，只有第二个参数变化了，才重新声明一次。(主要为了优化)
+
+```react
+var handleclick = useCallback(()=>{
+	console.log(name)
+},[name])
+<button onClick={()=>{handleclick()}}>hello</button>
+```
+
+只有name改变后，这个函数才会重新声明一次，如果传入空数组，那么就是第一次创建后就被缓存，如果name后期改变了，拿到的还是老的name，如果不传第二个参数，每次都会重新声明一次，拿到的就是最新的name.
 
 ### props
 
@@ -2012,11 +2081,11 @@ export default class Navbar extends Component {
 
 #### 性能优化方案
 
-#### shouldComponentUpdate
+##### shouldComponentUpdate
 
 控制组件自身或者子组件是否需要更新，尤其在子组件非常多的情况下，需要进行优化。
 
-#### PureComponent
+##### PureComponent
 
 `PureComponent`会帮你比较新的`props`和旧的`props`，新的`state`和老的`state`（值相等或者对象含有相同的属性、且属性值相等），决定`shouldComponentUpdate`返回true或者false，从而决定要不要呼叫`render function`。
 
@@ -2027,3 +2096,35 @@ export default class List extends PureComponent
 如上写完后，当state更新后值不变，就不会进行重复的刷新了。
 
 如果你的state或者props永远都会变，那么用PureComponent并不会比较快，因为shallowEqual也需要时间。
+
+####  路由
+
+可以用NavLink
+
+```react
+<NavLink to="/films">电影</NavLink>
+```
+
+但是需要写到`<HashRouter>`标签里面
+
+其余和vue差不多。 
+
+通过`history.push('/detail/xxx')`跳转,再通过props.match.params.xxx获取动态路由后的值
+
+##### 路由拦截
+
+基于react特性，通过表达式比如模板 
+
+```react
+function isAuth(){
+    return localStorage.getItem("token")
+}
+...
+<Route path="/center" render={()=>{
+	return isAuth() ? <Center/>:<Redirect to="/login" />
+}}/>
+```
+
+但是这种拦截会使center组件的props丢失
+
+ 
