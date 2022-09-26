@@ -278,7 +278,117 @@ output: {
 devtool:'inline-source-map',
 ```
 
-这样会使打包好的js文件显示的是你本来写的代码，而不是看不懂的代码，具体之后会详细说
+这样会使打包好的js文件显示的是你本来写的代码，而不是看不懂的代码
+
+如今，大部分源码都需要经过转换才能投入生产环境，如早期的jquery，现在流行的框架vue、react等。
+
+而源码转换后，都使得实际运行的代码不同于开发代码，在debug时就变得几乎无法看懂。转换后的代码在报错定位时，一行可能有成千上万个字符，变量名可能被修改，你完全无法看出代码出了什么问题。那咋整呢？
+
+这就是Source map要解决的问题。
+
+Source map，用官方点的话来说，是保存源代码映射关系的文件。简单来说，他就是一个信息文件，他是一个独立的map文件，里面储存着位置信息。也就是说，转换后的代码的每一个位置，所对应的转换前的位置。
+
+有了它，出错的时候，除错工具将直接显示原始代码，而不是转换后的代码。
+
+借用一下对比图片：
+
+<img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/00115d5b16404dea8328d3dc4a8c1616~tplv-k3u1fbpfcp-zoom-in-crop-mark:3024:0:0:0.awebp">
+
+**source map基本大概格式**
+
+ ```js
+{
+  version: 3,
+  file: "min.js",
+  names: ["bar", "baz", "n"],
+  sources: ["one.js", "two.js"],
+  sourceRoot: "http://example.com/www/js/",
+  mappings: "CAAC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA"
+}
+ ```
+
+>- version：顾名思义，指代了版本号，目前 source map 标准的版本为 3，也就是说这份 source map 使用的是第三版标准产出的
+>
+>- file：编译后的文件名
+>
+>- names：一个优化用的字段，后续会在 mappings 中用到
+>
+>- sources：多个源文件名
+>
+>- mappings：这是最重要的内容，表示了源代码及编译后代码的关系，但是先略过这块，下文中会详细解释
+
+**source map 那么大，它是否会影响网页性能呢？**
+
+这个答案肯定是不会影响，否则构建相关的优化就肯定会涉及到对于 source map 的处理了，毕竟 source map 文件也不小。
+
+其实 source map 只有在打开 dev tools 的情况下才会开始下载，相信大部分用户都不会去打开这个面板，所以这也就不是问题了。
+
+这时可能会有读者想说：哎，但是我好像从来没有在 Network 里看到 source map 文件的加载呀？其实这只是浏览器隐藏了而已，如果大家使用抓包工具的话就能发现在打开 dev tools 的时候开始下载 source map 了。
+
+**浏览器怎么知道源文件和 source map 的关系？**
+
+这里我们以 webpack 做个实验，通过 webpack5 对于以下代码进行打包：
+
+```js
+// index.js
+const a = 1
+console.log(a);
+```
+
+当我们开启 source map 选项以后，产物应该为两个文件，分别为 `bundle.js` 以及 `bundle.js.map`。
+
+查看 `bundle.js` 文件以后我们会发现代码中存在这一一段注释：
+
+```js
+console.log(1);
+//# sourceMappingURL=bundle.js.map
+```
+
+`sourceMappingURL` 就是标记了该文件的 source map 地址。
+
+当然除此之外还有别的方式，通过查阅 [MDN 文档](https://link.juejin.cn?target=https%3A%2F%2Fdeveloper.mozilla.org%2Fzh-CN%2Fdocs%2FWeb%2FHTTP%2FHeaders%2FSourceMap) 发现还可以通过 response header 的 `SourceMap: <url>` 字段来表明。
+
+**source map 是如何对应到源代码的？**
+
+这是 source map 最核心的功能，也是最涉及知识盲区的一块内容。
+
+大家应该还记得上文中没介绍的 `mapping` 字段吧，接下来我们就来详细了解这个字段的用处。
+
+我们还是以刚才打包的文件为例，来看看产出的 source map 长啥样（去掉了无关紧要的）：
+
+```json
+{
+  sources:["webpack://webpack-source-demo/./src/index.js"],
+  names: ['console', 'log'],
+  mappings: 'AACAA,QAAQC,IADE',
+}
+```
+
+首先 `mappings` 的内容其实是 Base64 VLQ 的编码表示。
+
+内容由三部分组成，分别为：
+
+- 英文，表示源码及压缩代码的位置关联
+- 逗号，分隔一行代码中的内容。比如说 `console.log(a)` 就由 `console` 、`log` 及 `a` 三部分组成，所以存在两个逗号。
+- 分号，代表换行
+
+逗号和分号想必大家没啥疑问，但是对于这几个英文内容应该会很困惑。
+
+其实这就是一种压缩数字内容的编码方式，毕竟源代码可能很庞大，用数字表示行数及列数的话 source map 文件将也会很庞大，因此选用 Base 64 来代表数字用以减少文件体积。
+
+比如说 `A` 代表了数字 0，`C` 代表了数字 1 等等，有兴趣的读者可以通过[该网站](https://link.juejin.cn?target=https%3A%2F%2Fwww.murzwin.com%2Fbase64vlq.html)了解映射关系。
+
+了解了这层编码的映射关系，我们再来聊聊这一串串英文到底代表了什么。
+
+其实这每串英文中的字母都代表了一个位置：
+
+1. 压缩代码的第几列
+2. 哪个源代码文件，毕竟可以多个文件打包成一个，对应 `sources` 字段
+3. 源代码第几行
+4. 源代码第几列
+5. `names` 字段里的索引
+
+为啥没有压缩代码的第几行表示？这是因为压缩后的代码就一行，所以只需要表示第几列就行了。
 
 ### 使用watch mode观察模式
 
@@ -511,7 +621,7 @@ use:['style-loader','css-loader','less-loader'],
 
 现在的css代码是和html在一起的，能不能把style里的代码放置到一个单独的文件里，通过link标签加载他呢？
 
-#### 抽离和压缩css
+### 抽离和压缩css
 
 ##### 抽离
 
@@ -963,7 +1073,7 @@ filename:'[name].[contenthash].js',//输出文件名
 
 再次修改output中的内容`filename:'scripts/[name].bundle.js',`并打包，可以看到images，scripts，styles都就位了，里面分别装着图片，js与css，然后app.html分别去加载这些内容
 
-![](img\3.png)
+![](D:\web前端\webpack note\img\3.png)
 
 ### 拆分开发环境和生产环境配置
 
